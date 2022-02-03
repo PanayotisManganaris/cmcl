@@ -1,0 +1,75 @@
+#+options: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+options: author:t broken-links:nil c:nil creator:nil
+#+options: d:(not "LOGBOOK") date:t e:t email:nil f:t inline:t num:t
+#+options: p:nil pri:nil prop:nil stat:t tags:t tasks:t tex:t
+#+options: timestamp:t title:t toc:t todo:t |:t
+#+title: README
+#+date: <2022-02-03 Thu>
+#+author:
+#+email: pmangana@purdue.edu
+#+language: en
+#+select_tags: export
+#+exclude_tags: noexport
+#+creator: Emacs 29.0.50 (Org mode 9.5.2)
+#+cite_export:
+* Contents
+This project contains scripts for training, optimizing, and evaluating
+a variety of ML models: random forest (RFR.py), Gaussian process
+(GPR.py) and neural network (NN.py) regression.
+* Dataset
+The dataset was formerly integral to the project.
+
+The new architecture makes use of an external database.
+this can be found on the group box folder
+
+#+begin_example
+$ rclone sync purduebox:/Mannodi_group_research_material/Perovskite\ Dataset/perovskites.db
+#+end_example
+
+* Model Strategy
+Train 3 ML models for HSE properties, for HSE_latt, HSE_gap, and
+HSE_decomp.
+
+Train 6 ML models for PBE properties, for PBE_latt, PBE_gap,
+PBE_decomp, and PV_FOM and SLME_5 or 100um.
+
+** level of theory exclusive
+train using only either 550 PBE or 299 HSE predictions
+
+** level of theory inclusive
+train using BOTH levels of theory.
+
+** TODO Enhanced featurization
+produce alternative or enlarged feature sets and train on those and
+transformations of those.
+
+*** PCA
+unitary transformation of feature set
+
+caution -- topological nature of both current composition and magpie
+properties
+
+Also, use this to identify notable outliers.-- identify outlier
+compositions
+*** tsne
+nonlinear manifold transformations
+*** UMAP
+still very new
+*** sisso
+generate buckingham-pi style nondimensional fits for multidimensional
+data spaces.
+** TODO produce learning curve
+For each model type, evaluate AVERAGE accuracy vs error as a funciton of
+training set size.
+** Outside predictions
+generate input vectors for new data and use as additional tests
+*** sources
+compare model to experimental results for validation
+1. [[cite:&almora-2020-devic-perfor]] meta-analysis of Perovskite PV devices.
+2. more literature compounds.
+3. Materials Zone aggregate database.
+
+
+* Citations
+bibliographystyle:authordate1
+bibliography:~/org/bibliotex/bibliotex.bib
