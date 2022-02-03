@@ -37,11 +37,9 @@ import random
 #import mlpy
 import pandas
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 
-#from mlpy import KernelRidge                                                                                                                                  
+#from mlpy import KernelRidge
 from sklearn.preprocessing import normalize
-
 
 ##  Choose Dataset Type  ##
 #Data = 'PBE'
@@ -145,8 +143,6 @@ m = int(X.size/n)
 #X_out = csvdata[:,1:]
 #X_out_fl = np.array(X_out, dtype="float32")
 #X_out_norm = normalize(X_out_fl, norm='l2', axis=0)
-
-
 
 ###  Training-Test Split  ###
 
