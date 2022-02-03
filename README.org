@@ -5,7 +5,7 @@
 #+options: timestamp:t title:t toc:t todo:t |:t
 #+title: README
 #+date: <2022-02-03 Thu>
-#+author:
+#+author: Panayotis Manganaris
 #+email: pmangana@purdue.edu
 #+language: en
 #+select_tags: export
@@ -13,10 +13,45 @@
 #+creator: Emacs 29.0.50 (Org mode 9.5.2)
 #+cite_export:
 * Contents
-This project contains scripts for training, optimizing, and evaluating
+Command line app for training, optimizing, and evaluating
 a variety of ML models: random forest (RFR.py), Gaussian process
 (GPR.py) and neural network (NN.py) regression.
-* Dataset
+
+Generally will function for arbitrary datasets?
+
+Comes equipped with some predictors optimized for Perovskite
+compositions and outputs
+* Usage
+** make a commandline interface
+*** learning curve
+test efficacy for multiple training set sizes
+*** hyperparameters
+gridsearch
+**** future:
+beyesian prediction
+*** quick train
+take nothing but composition and targets/ composition to predict
+
+and compute composition descriptor and properties descriptor matrices
+
+use a pretrained best model pickled in.
+**** pick from
+1. rfr
+2. NN
+3. GRR
+4. combo?
+
+**** optional save model
+*** quick predict
+put formula get values
+** TODO add experimental dataset
+separate module to compare experimental ground truth with
+computational
+** TODO add inverse design module
+mannodi and kern style GA
+** TODO model improvement guide module
+
+* Builtin Dataset
 The dataset was formerly integral to the project.
 
 The new architecture makes use of an external database.
@@ -69,6 +104,17 @@ compare model to experimental results for validation
 2. more literature compounds.
 3. Materials Zone aggregate database.
 
+* model minutea
+SLME is going to be zero for excessively high bandgaps
+
+it may be necessary to predict SLME USING predicted bandgap for fresh
+compounds. -- train binary classifier as first filtration strategy.
+
+** SLME
+a spectral property
+#+DOWNLOADED: screenshot @ 2022-02-03 14:50:54
+#+attr_latex: :width 350
+[[file:model_minutea/2022-02-03_14-50-54_screenshot.png]]
 
 * Citations
 bibliographystyle:authordate1
