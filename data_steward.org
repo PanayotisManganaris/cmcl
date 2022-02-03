@@ -1,0 +1,62 @@
+#+latex_class: article
+#+latex_class_options:
+#+latex_header:
+#+latex_header_extra:
+#+description:
+#+keywords:
+#+latex_compiler: pdflatex
+#+TITLE: Brief Literate Stewardship of original project data
+#+date: \today
+* Switch to scrymat environment:
+#+begin_src emacs-lisp
+  (conda-env-activate "scrymat")
+#+end_src
+
+#+RESULTS:
+: Switched to conda environment: /opt/miniconda3/envs/scrymat/
+
+* import packages
+#+begin_src jupyter-python :session "py" :exports both :results none
+  import pandas as pd
+  import sqlite3
+
+  from pathlib import Path
+
+  import numpy as np
+#+end_src
+* Aggregate Excels
+#+begin_src jupyter-python :session "py" :exports both :results raw drawer 
+  data_dir = Path("/home/panos/src/halide_perovs_design/")
+  data_dir = data_dir.absolute().resolve()
+  files = data_dir.glob('*.xlsx')
+  files
+#+end_src
+
+#+RESULTS:
+: <generator object Path.glob at 0x7f77a41fe970>
+* Load Workbooks as dictionaries of dataframes:
+Readable files need read() method like that provided by open
+function. read_excel method accepts: sheet_name=index, name, or
+list; header=N rows to use as labels; names=array of explicit
+column names to read.
+
+readers can also operate on read input using converter=dict of key:col,
+val:single-arg converter function}
+#+begin_src jupyter-python :session "py" :exports both :results raw drawer 
+  def get_dfs(file):
+      """return {keys:dataframes} for a datafile with multiple worksheets or individual df"""
+      dfs = pd.read_excel(file, sheet_name=None, header=0, index_col=None, engine=None)
+      return dfs
+
+  l = []
+  for file in files:
+      dfs = get_dfs(file)
+      l.append(dfs)
+#+end_src
+
+#+RESULTS:
+* name dataframes
+#+begin_src jupyter-python :session "py" :export both :results raw drawer
+  df = l[0]["Sheet1"]
+  df.info()
+#+end_src

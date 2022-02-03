@@ -36,7 +36,9 @@ import copy
 import random 
 #import mlpy
 import pandas
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
 #from mlpy import KernelRidge                                                                                                                                  
 from sklearn.preprocessing import normalize
 
@@ -452,7 +454,7 @@ if Data == 'HSE':
     ax3.set_title('Band Gap (eV)', c='k', fontsize=20, pad=12)
     #ax3.legend(loc='upper left',ncol=1, frameon=True, prop={'family':'Arial narrow','size':12})
 
-    plt.savefig('plot_HSE_RFR_models.pdf', dpi=450)
-
+    #plt.savefig('plot_HSE_RFR_models.pdf', dpi=450)
+    plt.show()
 
 
