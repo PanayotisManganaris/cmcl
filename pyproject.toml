@@ -11,6 +11,7 @@ keras = "^2.8.0"
 pandas = "^1.4.0"
 numpy = "^1.22.2"
 matplotlib = "^3.5.1"
+click = "^8.0.3"
 
 [tool.poetry.dev-dependencies]
 
@@ -19,4 +20,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-cmcl = "cmcl.ui:cli"
+cmcl = "cmcl.api:cli"
