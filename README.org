@@ -21,6 +21,9 @@ Generally will function for arbitrary datasets?
 
 Comes equipped with some predictors optimized for Perovskite
 compositions and outputs
+
+Also equipped with a chemical formula parser to automatically convert
+a variety of formula strings into numerical descriptors.
 * Usage
 ** make a commandline interface
 *** learning curve
@@ -114,7 +117,7 @@ compounds. -- train binary classifier as first filtration strategy.
 a spectral property
 #+DOWNLOADED: screenshot @ 2022-02-03 14:50:54
 #+attr_latex: :width 350
-[[file:model_minutea/2022-02-03_14-50-54_screenshot.png]]
+[[file:2022-02-03_14-50-54_screenshot.png]]
 
 * Citations
 bibliographystyle:authordate1
