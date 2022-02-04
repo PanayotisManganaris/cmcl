@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "cmcl"
+version = "0.0.1"
+description = "aggregate chemical formula and measurments, train models, optimize models, predict properties of new chemistries"
+authors = ["Panayotis Manganaris <panos.manganaris@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+sklearn = "^0.0"
+keras = "^2.8.0"
+pandas = "^1.4.0"
+numpy = "^1.22.2"
+matplotlib = "^3.5.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+cmcl = "cmcl.ui:cli"
