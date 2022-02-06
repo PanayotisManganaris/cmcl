@@ -149,10 +149,42 @@ def process_formula(entry):
     formula_dict = compile_nums(formula_zip)
     return formula_dict
 
-class CompTable():
+class CompitionTable():
     """
     starting with only series of Formula strings, obtain dataframe
     of formulas' constituent quantities
+
+    mutate given dataframe in place and pass self indices to FeatureAccessor.
     """
-    
-    
+    def __init__(self, df):
+        self._validate(df)
+        self._df = df
+        self._cols_before_update = df.columns.values
+        self._cols_after_update = pd.Series([])
+        self.comp_cols = []
+
+    @staticmethod
+    def _validate(df):
+        """make sure formula strings are of the expected form"""
+        pass
+
+    def make(self):
+         # normalize string encoding!
+        self._df.Formula = self._df.Formula.apply(lambda entry: "".join(list(map(unidecode, entry))))
+        compdict_s = self._df.Formula.apply(process_formula)
+        comp_df = pd.DataFrame(compdict_s.to_list())
+        comp_s_dict = comp_df.to_dict()
+        comp_dict = {}
+        for k,v in comp_s_dict.items():
+            comp_dict[k] = list(v.values())
+        self._df = self._df.assign(**comp_dict)
+
+    def make_accessible(self):
+        original = self._cols_before_update
+        self._cols_after_update = self._df.columns
+        is_not_original_content = np.vectorize(lambda x: original not in x)
+        tmp_comp_idx = is_not_original_content(self._cols_after_update.to_numpy())
+        self.comp_cols.append(self._cols_after_update[tmp_comp_idx])
+
+    def get(self):
+        

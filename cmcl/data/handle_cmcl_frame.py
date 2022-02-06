@@ -1,14 +1,17 @@
 import pandas as pd
-from cmcl.features.extract_constituents import CompTable
+from cmcl.features.extract_constituents import CompositionTable
 
 @pd.api.extensions.register_dataframe_accessor("ft")
 class FeatureAccessor():
     """
     Conveniently and robustly define and retrieve training/target tables
 
-    for certain Ml descriptors, when set does not exist, it will be created.
+    when table does not exist, it will be created.
 
-    if no targets exist, flag modelers to notify user.
+    wishlist:
+    - keep track of accessor objects in db for working with
+    stored tables. store cols lists as df._metadata?
+    - if no targets exist, flag modelers to notify user.
 
     Human descriptors:
     human = CmclFrame.ft.human = CmclFrame["Formula", "Mixing"[, "Supercell"]]
@@ -41,21 +44,16 @@ class FeatureAccessor():
                     given_df.rename(columns = {"formula":"Formula"})
                 else:
                     raise AttributeError("No Formula Column Named")
+                
         
     def comp(self):
         """get array of formula's constituent quantities"""
 
     def mtmr(self):
         """get array of dscribe inorganic crystal properties"""
+        print("Not Implemented")
 
     def meg(self):
         """get array of MEGnet properties"""
+        print("Not Implemented")
         
-
-class DataProvider():
-    """
-    provide tables from database
-
-    ideally could also be used to fill gaps in CmclFrame
-    automatically
-    """
