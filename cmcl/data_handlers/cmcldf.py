@@ -1,11 +1,14 @@
 import pandas as pd
+from cmcl.features.extract_constituents import CompTable
 
 @pd.api.extensions.register_dataframe_accessor("ft")
 class FeatureAccessor():
     """
-    Convenience Object robustly defines and retrieves ML training/target tables
+    Conveniently and robustly define and retrieve training/target tables
 
     for certain Ml descriptors, when set does not exist, it will be created.
+
+    if no targets exist, flag modelers to notify user.
 
     Human descriptors:
     human = CmclFrame.ft.human = CmclFrame["Formula", "Mixing"[, "Supercell"]]
@@ -32,11 +35,12 @@ class FeatureAccessor():
         a series of Formula
         at least one series of measurements
         """
-        if "Formula" not in given_df.columns:
-            if "formula" in given_df.columns:
-                given_df.rename(columns = {"formula":"Formula"})
-            else:
-                raise AttributeError("")
+        if given_df.columns.values.shape < 2:
+            if "Formula" not in given_df.columns:
+                if "formula" in given_df.columns:
+                    given_df.rename(columns = {"formula":"Formula"})
+                else:
+                    raise AttributeError("No Formula Column Named")
         
     def comp(self):
         """get array of formula's constituent quantities"""

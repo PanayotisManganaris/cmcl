@@ -149,12 +149,10 @@ def process_formula(entry):
     formula_dict = compile_nums(formula_zip)
     return formula_dict
 
-class FeaturizeTable():
+class CompTable():
     """
-    work on a whole dataframe. Checks for one formula and at least one metric. Disables ML if no metrics 
-
-    starting with only series of Formula strings can obtain variety of feature sets
-
-    guarenteed to obtain at least 
+    starting with only series of Formula strings, obtain dataframe
+    of formulas' constituent quantities
     """
+    
     
