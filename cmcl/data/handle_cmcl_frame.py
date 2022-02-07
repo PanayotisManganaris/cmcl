@@ -75,9 +75,8 @@ class FeatureAccessor():
     
     def mtmr(self):
         """get array of dscribe inorganic crystal properties"""
-        print("Not Implemented")
+        print("matminer Not Implemented")
 
     def meg(self):
         """get array of MEGnet properties"""
-        print("Not Implemented")
-        
+        print("megnet Not Implemented")
