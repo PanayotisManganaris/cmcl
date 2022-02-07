@@ -1,9 +1,9 @@
 import pandas as pd
 from cmcl.data.handle_cmcl_frame import FeatureAccessor
-from cmcl.features.extract_constituents import CompositionTable
 
 import sqlite3
 
+##  Load Dataset  ##
 sql_string = '''SELECT * 
                 FROM mannodi_agg'''
 conn = sqlite3.connect("/home/panos/MannodiGroup/data/perovskites.db")
@@ -12,10 +12,12 @@ df = pd.read_sql(sql_string,
                  index_col='index')
 conn.close()
 
-test_df = df[["Formula", "PBE_bg_eV"]]
+def main():
+    bdf = df[["Formula", "sim_cell", "PBE_LC", "PBE_bgType", "PBE_bg_eV", "PBE_dbg_eV", "PBE_FormE_eV", "PBE_DecoE_eV", "dielc", "PV_FOM", "SLME_5um", "SLME_100um", "HSE_LC", "HSE_bgType", "HSE_bg_eV", "HSE_dbg_eV", "HSE_FormE_eV", "HSE_DecoE_eV"]]
+    comp = bdf.ft.comp()
+    
+    return comp, 
 
-# test_df = pd.DataFrame({'Formula': {1: 'MAGeBr3', 2: 'MAGeI3', 3: 'MASnCl3', 4: 'MASnBr3'},
-#                         'PBE_bg_eV': {1: 1.612, 2: 1.311, 3: 1.582, 4: 1.262}})
-
-comp_matrix = test_df.ft.comp()
-print(comp_matrix)
+if __name__ == '__main__':
+    comp_df = main()
+    print(comp_df)
