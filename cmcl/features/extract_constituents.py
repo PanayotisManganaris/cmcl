@@ -164,7 +164,8 @@ class CompositionTable():
     def __init__(self, df):
         self._validate(df)
         self._df = df.loc[:]
-        logging.debug(f"CT acts on a view {self._df._is_view}")
+        logging.debug(f"CT acts on a view {self._df.values.base is df.values.base}")
+        logging.debug(f"CT acts on a copy {self._df._is_copy}")        
         self._cols_before_update = df.columns.values
 
     @staticmethod
