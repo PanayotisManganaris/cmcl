@@ -1,6 +1,11 @@
+import logging
+logfmt = '[%(levelname)s] %(asctime)s - %(message)s'
+logging.basicConfig(level=logging.DEBUG, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
+
 import pandas as pd
 import re
 import numpy as np
+from unidecode import unidecode
 
 ptable ="""H                                                                   He 
            Li  Be                                          B   C   N   O   F   Ne 
@@ -149,7 +154,7 @@ def process_formula(entry):
     formula_dict = compile_nums(formula_zip)
     return formula_dict
 
-class CompitionTable():
+class CompositionTable():
     """
     starting with only series of Formula strings, obtain dataframe
     of formulas' constituent quantities
@@ -158,10 +163,9 @@ class CompitionTable():
     """
     def __init__(self, df):
         self._validate(df)
-        self._df = df
+        self._df = df.loc[:]
+        logging.debug(f"CT acts on a view {self._df._is_view}")
         self._cols_before_update = df.columns.values
-        self._cols_after_update = pd.Series([])
-        self.comp_cols = []
 
     @staticmethod
     def _validate(df):
@@ -177,14 +181,18 @@ class CompitionTable():
         comp_dict = {}
         for k,v in comp_s_dict.items():
             comp_dict[k] = list(v.values())
-        self._df = self._df.assign(**comp_dict)
-
-    def make_accessible(self):
-        original = self._cols_before_update
-        self._cols_after_update = self._df.columns
-        is_not_original_content = np.vectorize(lambda x: original not in x)
-        tmp_comp_idx = is_not_original_content(self._cols_after_update.to_numpy())
-        self.comp_cols.append(self._cols_after_update[tmp_comp_idx])
+        return comp_dict
 
     def get(self):
-        
+        original = self._cols_before_update
+        updated = self._df.columns.values
+        is_not_original_content = np.vectorize(lambda x: x not in original)
+        comp_cols_idx = is_not_original_content(updated)
+        comp_cols = updated[comp_cols_idx]
+        return comp_cols
+
+    def make_and_get(self):
+        comp_dict = self.make()
+        comp_cols = self.get()
+        self._df = self._df.assign(**comp_dict)
+        return comp_cols
