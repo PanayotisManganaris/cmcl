@@ -163,9 +163,9 @@ class CompositionTable():
     """
     def __init__(self, df):
         self._validate(df)
-        self._df = df.loc[:]
-        logging.debug(f"CT acts on a view {self._df.values.base is df.values.base}")
-        logging.debug(f"CT acts on a copy {self._df._is_copy}")        
+        self.df = df#.loc[:]
+        logging.debug(f"CT acts on a view {self.df.values.base is df.values.base}")
+        logging.debug(f"CT acts on a copy {self.df._is_copy}")
         self._cols_before_update = df.columns.values
 
     @staticmethod
@@ -175,10 +175,10 @@ class CompositionTable():
 
     def make(self):
          # normalize string encoding!
-        self._df.Formula = self._df.Formula.apply(lambda entry: "".join(list(map(unidecode, entry))))
-        compdict_s = self._df.Formula.apply(process_formula)
-        comp_df = pd.DataFrame(compdict_s.to_list())
-        comp_s_dict = comp_df.to_dict()
+        self.df.Formula = self.df.Formula.apply(lambda entry: "".join(list(map(unidecode, entry))))
+        compdict_s = self.df.Formula.apply(process_formula)
+        compdf = pd.DataFrame(compdict_s.to_list())
+        comp_s_dict = compdf.to_dict()
         comp_dict = {}
         for k,v in comp_s_dict.items():
             comp_dict[k] = list(v.values())
@@ -186,16 +186,20 @@ class CompositionTable():
 
     def get(self):
         original = self._cols_before_update
-        updated = self._df.columns.values
+        logging.debug(f"original cols: {original}")
+        updated = self.df.columns.values
+        logging.debug(f"all cols: {updated}")
         is_not_original_content = np.vectorize(lambda x: x not in original)
         comp_cols_idx = is_not_original_content(updated)
+        logging.debug(f"bool cols: {comp_cols_idx}")
         comp_cols = updated[comp_cols_idx]
+        logging.debug(f"comp cols: {comp_cols}")        
         return comp_cols
 
     def make_and_get(self):
         comp_dict = self.make()
+        self.df = self.df.assign(**comp_dict)
         comp_cols = self.get()
-        self._df = self._df.assign(**comp_dict)
         return comp_cols
 
 def catagorize_mix(df):

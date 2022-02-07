@@ -3,6 +3,7 @@ logfmt = '[%(levelname)s] %(asctime)s - %(message)s'
 logging.basicConfig(level=logging.DEBUG, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
 
 import pandas as pd
+import numpy as np
 from cmcl.features.extract_constituents import CompositionTable
 
 @pd.api.extensions.register_dataframe_accessor("ft")
@@ -33,7 +34,8 @@ class FeatureAccessor():
 
     def __init__(self, df):
         self._validate(df)
-        self._df = df.loc[:]
+        self._df = df
+        self._comp_mod_df = None
         self._comp_cols = None
 
     @staticmethod
@@ -53,13 +55,24 @@ class FeatureAccessor():
             else:
                 raise AttributeError("No Formula Column Named")
         
-    def comp(self):
+    def _make_comp(self):
         """get array of formula's constituent quantities"""
-        if self._comp_cols and self._comp_cols in self._df:
-            return self._df[self._comp_cols]
-        else:
-            self._comp_cols = CompositionTable(self._df).make_and_get()
+        extender = CompositionTable(self._df)
+        self._comp_cols = extender.make_and_get()
+        self._comp_mod_df = extender.df
 
+    def _get_comp(self):
+        return self._comp_mod_df[self._comp_cols]
+
+    def comp(self):
+        """
+        once called, the resulting training set is static?
+        note to self: maybe calling the accessor on an extended dataframe resets it...
+        """
+        if self._comp_cols is None:
+            self._make_comp()
+        return self._get_comp()
+    
     def mtmr(self):
         """get array of dscribe inorganic crystal properties"""
         print("Not Implemented")
