@@ -4,8 +4,24 @@ logging.basicConfig(level=logging.DEBUG, datefmt="%Y-%m-%d %H:%M:%S", format=log
 
 import pandas as pd
 import numpy as np
+#access feature computers
 from cmcl.features.extract_constituents import CompositionTable
 from cmcl.features.extract_dummies import DummyTable
+
+#access category generators
+from cmcl.features.extract_categories import SiteCat
+
+#access transformers
+from cmcl.transforms.PCA import PCA
+
+#access models
+from cmcl.material_models.RFR import RFR
+
+
+# feature accessors should saveable in some way for future use/reporting
+
+# model accessors perhaps can be saved, but are often not.
+# expensive models should be saved, though...
 
 @pd.api.extensions.register_dataframe_accessor("ft")
 class FeatureAccessor():
@@ -23,14 +39,14 @@ class FeatureAccessor():
     human = CmclFrame.ft.human = CmclFrame["Formula", "Mixing"[, "Supercell"]]
 
     basic chemical descriptors:
-    composition_tbl = CmclFrame.compositions = CmclFrame[compositions]
-    prop_tbl = CmclFrame.ft.properties
+    composition_tbl = CmclFrame.ft.comp
+    prop_tbl = CmclFrame.ft.prop
 
     pymatgen descriptors:
-    matminer_tbl = CmclFrame.ft.dscribe
+    matminer_tbl = CmclFrame.ft.mtmr
 
     MEGnet descriptors:
-    meg_tbl = CmclFrame.megnet
+    meg_tbl = CmclFrame.meg
     """
 
     def __init__(self, df):
@@ -104,3 +120,163 @@ class FeatureAccessor():
     def meg(self):
         """get array of MEGnet properties"""
         print("megnet Not Implemented")
+
+
+@pd.api.extensions.register_dataframe_accessor("sm")
+class SummaryAccessor():
+    """
+    Conveniently and robustly define and retrieve categorical summaries of data
+
+    when table does not exist, it will be created.
+
+    these summary columns are all intended to work with X.ft.ohe()
+    which can one-hot encode any one in a simple oneliner
+
+    X.sm.mix().ft.ohe()
+
+    Human descriptors:
+    mixing_sites = CmclFrame.ft.comp().sm.mix
+
+    continuous metric descretizations
+    distribution_table = CmclFrame["metric"].sm.bin(nbins)
+    """
+    def __init__(self, df):
+        self._validate(df)
+        #getting original
+        self._df = df
+        #getting mix categories
+        self._mix_mod_df = None
+        self._mix_cols = None
+        
+    @staticmethod
+    def _validate(df):
+        """
+        verify df contains at least one series of measurements
+        """
+        pass
+
+    def base(self):
+        return self._df
+        
+    def _make_mix(self):
+        extender = MixSeries(self._df)
+        self._mix_cols = extender.make_and_get()
+        self._mix_mod_df = extender.df
+
+    def _get_mix(self):
+        return self._mix_mod_df[self._mix_cols]
+
+    def mix(self):
+        if self._mix_cols is None:
+            self._make_mix()
+        return self._get_mix()
+
+        
+@pd.api.extensions.register_dataframe_accessor("tf")
+class TransformAccessor():
+    """
+    Conveniently and robustly define and retrieve transforms of tables
+
+    when transform does not exist, it will be created.
+
+    these transforms can be applied to any X.ft.function()
+    with a simple one-liner
+    
+    X.ft.comp().ft.ohe()
+
+    provides signal analysis transforms
+    FFT, Hilbert, etc
+
+    decompositions
+    PCA, etc
+
+    kernel transforms
+    TSNE, UMAP, SISSO, etc
+    """
+    def __init__(self, df):
+        self._validate(df)
+        #getting original
+        self._df = df
+        #getting mix categories
+        self._PCA_mod_df = None
+        self._PCA_cols = None
+        
+    @staticmethod
+    def _validate(df):
+        """
+        verify df contains numerical data of the float dtype
+        """
+        pass
+
+    def base(self):
+        return self._df
+        
+    def _make_pca(self):
+        extender = PCATable(self._df)
+        self._pca_cols = extender.make_and_get()
+        self._pca_mod_df = extender.df
+
+    def _get_pca(self):
+        return self._pca_mod_df[self._pca_cols]
+        
+    def pca(self):
+        #wishlist: make the score matrix recoverable for biplotting
+        if self._pca_cols is None:
+            self._make_pca()
+        return self._get_pca()
+
+@pd.api.extensions.register_dataframe_accessor("model")
+class ModelAccessor():
+    """
+    Conveniently and robustly define and retrieve models of tables based on other tables
+
+    when model does not exist, it will be created.
+
+    these models can be obtained for any X.ft.function()
+    with a simple one-liner
+    
+    Y.model.RFR(X, optimize=True)
+
+    provides
+    RFR
+    GRR
+    NN
+    """
+    def __init__(self, Y):
+        self._validate(Y)
+        #getting original
+        self._df = df
+        #getting mix categories
+        self._RFR_Y = None
+        self._RFR_cols = None
+        self._RFR = None
+        
+    @staticmethod
+    def _validate(Y):
+        """
+        verify Y contains numerical data
+
+        flag weather categorical or continuous?
+        """
+        pass
+
+    def base(self):
+        return self._df
+        
+    def _make_RFR(self, X):
+        extender = RFR(X, self._df)
+        self._RFR_cols = extender.make_and_get()
+        self._RFR_Y = extender.Y
+
+    def _get_RFR(self):
+        #get tuple of prediction and regressor
+        return self._pca_mod_df[self._pca_cols]
+        
+    def RFR(self, X):
+        """
+        return a model of accessed data using X
+        and the model used to get it
+        """
+        if self._RFR_cols is None:
+            self._make_RFR(X)
+        return self._get_RFR()
