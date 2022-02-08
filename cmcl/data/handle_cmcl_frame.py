@@ -5,6 +5,7 @@ logging.basicConfig(level=logging.DEBUG, datefmt="%Y-%m-%d %H:%M:%S", format=log
 import pandas as pd
 import numpy as np
 from cmcl.features.extract_constituents import CompositionTable
+from cmcl.features.extract_dummies import DummyTable
 
 @pd.api.extensions.register_dataframe_accessor("ft")
 class FeatureAccessor():
@@ -34,27 +35,48 @@ class FeatureAccessor():
 
     def __init__(self, df):
         self._validate(df)
+        #getting original
         self._df = df
+        #getting dummies 
+        self._ohe_mod_df = None
+        self._ohe_cols = None
+        #getting physical comp features
         self._comp_mod_df = None
         self._comp_cols = None
-
+        
     @staticmethod
-    def _validate(given_df):
+    def _validate(df):
         """
         verify df contains
         a series of Formula
         at least one series of measurements
         """
-        if given_df.columns.values.shape[0] < 2:
+        if df.columns.values.shape[0] < 2:
             pass #warn user no ml can be done on current data
         else:
             pass
-        if "Formula" not in given_df.columns:
-            if "formula" in given_df.columns:
-                given_df.rename(columns = {"formula":"Formula"})
+        if "Formula" not in df.columns:
+            if "formula" in df.columns:
+                df.rename(columns = {"formula":"Formula"})
             else:
                 raise AttributeError("No Formula Column Named")
+
+    def base(self):
+        return self._df
         
+    def _make_ohe(self):
+        extender = DummyTable(self._df)
+        self._ohe_cols = extender.make_and_get()
+        self._ohe_mod_df = extender.df
+
+    def _get_ohe(self):
+        return self._ohe_mod_df[self._ohe_cols]
+
+    def ohe(self):
+        if self._ohe_cols is None:
+            self._make_ohe()
+        return self._get_ohe()
+
     def _make_comp(self):
         """get array of formula's constituent quantities"""
         extender = CompositionTable(self._df)
@@ -67,11 +89,13 @@ class FeatureAccessor():
     def comp(self):
         """
         once called, the resulting training set is static?
-        note to self: maybe calling the accessor on an extended dataframe resets it...
+        note to self: maybe calling the accessor on new records added to the dataframe resets it...
         """
         if self._comp_cols is None:
             self._make_comp()
         return self._get_comp()
+
+    
     
     def mtmr(self):
         """get array of dscribe inorganic crystal properties"""
