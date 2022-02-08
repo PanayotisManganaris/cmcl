@@ -26,6 +26,8 @@ class DummyTable():
         """
         one-hot-encode categorical variables. Not including Formula, so it can be used on base input easily.
         can't imagine why you'd want to ohe formula strings
+
+        wishlist: develop logic for prefixing dummy cols
         """
         #make in one swoop
         self.df = pd.get_dummies(self.df.loc[:, self.df.columns != "Formula"])

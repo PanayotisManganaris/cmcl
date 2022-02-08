@@ -1,3 +1,11 @@
+# might be prudent to make a new accessor for these catagorizers
+# as most will work only on results of various featurizers
+
+class SiteCat():
+   """
+   generate categorical columns based on site populations
+   """
+   def __init__(self):
 
 
 def categorize_mix(df):
