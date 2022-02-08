@@ -4,6 +4,9 @@ from cmcl.data.handle_cmcl_frame import FeatureAccessor
 import sqlite3
 
 ##  Load Dataset  ##
+# point to your local copy of the db (updated on box) for now
+# eventually will gather data from vasp runs
+# or from csv files at root
 sql_string = '''SELECT * 
                 FROM mannodi_agg'''
 conn = sqlite3.connect("/home/panos/MannodiGroup/data/perovskites.db")
