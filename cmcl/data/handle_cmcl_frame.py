@@ -1,6 +1,6 @@
 import logging
 logfmt = '[%(levelname)s] %(asctime)s - %(message)s'
-logging.basicConfig(level=logging.DEBUG, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
+logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
 
 import pandas as pd
 import numpy as np
@@ -16,7 +16,6 @@ from cmcl.transforms.PCA import PCA
 
 #access models
 from cmcl.material_models.RFR import RFR
-
 
 # feature accessors should saveable in some way for future use/reporting
 
@@ -67,15 +66,18 @@ class FeatureAccessor():
         a series of Formula
         at least one series of measurements
         """
-        if df.columns.values.shape[0] < 2:
-            pass #warn user no ml can be done on current data
-        else:
-            pass
-        if "Formula" not in df.columns:
-            if "formula" in df.columns:
-                df.rename(columns = {"formula":"Formula"})
-            else:
-                raise AttributeError("No Formula Column Named")
+        #notice: this sort of specifc validation should be done by the respective featurizers
+        # only general checks should be done here
+        pass
+        #         if df.columns.values.shape[0] < 2:
+        #             pass #warn user no ml can be done on current data
+        #         else:
+        #             pass
+        #         if "Formula" not in df.columns:
+        #             if "formula" in df.columns:
+        #                 df.rename(columns = {"formula":"Formula"})
+        #             else:
+        #                 raise AttributeError("No Formula Column Named")
 
     def base(self):
         return self._df
@@ -245,9 +247,10 @@ class ModelAccessor():
     def __init__(self, Y):
         self._validate(Y)
         #getting original
-        self._df = df
+        self._df = Y
         #getting mix categories
-        self._RFR_Y = None
+        self._RFR_X_stack = None
+        self._RFR_Y_stack = None
         self._RFR_cols = None
         self._RFR = None
         
@@ -263,14 +266,16 @@ class ModelAccessor():
     def base(self):
         return self._df
         
-    def _make_RFR(self, X):
-        extender = RFR(X, self._df)
+    def _make_RFR(self, X, testpart=None): #extend args?
+        extender = RFR(X, self._df, testpart=testpart)
         self._RFR_cols = extender.make_and_get()
-        self._RFR_Y = extender.Y
+        self._RFR_Y_stack = extender.Y_stack
+        self._RFR_X_stack = extender.X_stack
+        self._RFR = extender.r
 
     def _get_RFR(self):
         #get tuple of prediction and regressor
-        return self._pca_mod_df[self._pca_cols]
+        return self._RFR_X_stack[self._RFR_cols], self._RFR_Y_stack[self.RFR_cols], self._RFR
         
     def RFR(self, X):
         """
