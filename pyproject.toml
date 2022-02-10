@@ -17,6 +17,7 @@ mplcursors = "^0.5.1"
 
 [tool.poetry.dev-dependencies]
 jupyter = "^1.0.0"
+tabulate = "^0.8.9"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
