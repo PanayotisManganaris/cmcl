@@ -232,10 +232,10 @@ class ModelAccessor():
     """
     Conveniently and robustly define and retrieve models of tables based on other tables
 
-    when model does not exist, it will be created.
+    An accessed table will have models created for it. models are
+    stored with the accessor instance, predictions are not. 
 
-    these models can be obtained for any X.ft.function()
-    with a simple one-liner
+    predictions and models can be obtained with a simple one-liner
     
     Y.model.RFR(X, optimize=True)
 
@@ -248,10 +248,7 @@ class ModelAccessor():
         self._validate(Y)
         #getting original
         self._df = Y
-        #getting mix categories
-        self._RFR_X_stack = None
-        self._RFR_Y_stack = None
-        self._RFR_cols = None
+        #existing models
         self._RFR = None
         
     @staticmethod
@@ -266,22 +263,31 @@ class ModelAccessor():
     def base(self):
         return self._df
         
-    def _make_RFR(self, X, testpart=None): #extend args?
-        extender = RFR(X, self._df, testpart=testpart)
-        self._RFR_cols = extender.make_and_get()
-        self._RFR_Y_stack = extender.Y_stack
-        self._RFR_X_stack = extender.X_stack
-        self._RFR = extender.r
+    #def _parametrize_RFR(self, ntrees=100, max_features="sqrt", optimize=False):
+    #    self._RFR = extender.r
+    #    # take arguments from user, somehow, to customize the fit/interrogate the predictor
+    #    pass
+    # maybe... no sure how best to do optimization
 
-    def _get_RFR(self):
-        #get tuple of prediction and regressor
-        return self._RFR_X_stack[self._RFR_cols], self._RFR_Y_stack[self.RFR_cols], self._RFR
-        
-    def RFR(self, X):
+    def _do_RFR(self, X, r=None, t=0.20): #extend args?
+        modeler = RFR(X, self._df, t=t, r=r)
+        modeler.train_test_return()
+        self._RFR = modeler
+
+    def RFR(self, X, r=None):
         """
-        return a model of accessed data using X
-        and the model used to get it
+        return a model of Y based on X, The form of X used,
+        and optionally the model used to get Y.
+
+        Both Y and X are returned with pandas multindex
+
+        this can be used to access the train/test split for each
+        dataframe conveniently using pandas tuple indexing, the pandas
+        IndexSlice module, or the .xs (cross section) method.
         """
-        if self._RFR_cols is None:
-            self._make_RFR(X)
-        return self._get_RFR()
+        if self._RFR is None:
+            #self._parametrize_RFR()            
+            self._do_RFR(X, r=r, t=0.20)
+        return self._RFR.Y_stack, self._RFR.X_stack, self._RFR#.r
+
+
