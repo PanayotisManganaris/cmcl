@@ -1,3 +1,7 @@
+# create a RFR model on data by featurizing a dataframe of formula and
+# running a model accessor on a target using the feature result.
+
+# data utilities
 import pandas as pd
 from cmcl.data.frame import FeatureAccessor
 from cmcl.data.frame import SummaryAccessor
@@ -5,11 +9,13 @@ from cmcl.data.frame import TransformAccessor
 from cmcl.data.frame import ModelAccessor
 
 import sqlite3
+from cmcl.data.utils import *
 
-import matplotlib.pyplot as plt
-
+# analysis tools
 #from cmcl.data.spyglass import PairPlot
 from sklearn.metrics import mean_squared_error
+import math
+import matplotlib.pyplot as plt
 
 #load data
 conn = sqlite3.connect("/home/panos/MannodiGroup/data/perovskites.db")
