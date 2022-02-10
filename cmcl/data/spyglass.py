@@ -1,16 +1,38 @@
-import matplotlib.pyplot as plt
+import logging
+logfmt = '[%(levelname)s] %(asctime)s - %(message)s'
+logging.basicConfig(level=logging.DEBUG, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
 
-#  ML Parity Plots ##
+import matplotlib.pyplot as plt
+import mplcursors
+
+class PairPlot():
+    """
+    a plotting object specifically for assessing the acquity of ml regressors
+
+    provides functions to
+    save plot as figure
+    display plot statically in ipython notebook with basic backend
+    display plot interactively with qtcanvas, etc
+
+    this is code will be moved wholesale to the mannodi group spyglass project
+    in the near future. the cmcl plotting functionality will be ported to use
+    spyglass when this happens
+    """
+    def __init__(self):
+        pass
+
+    def liveplot():
+        pass
+        
+    def saveplot():
+        pass
+    
 fig, ( [ax1, ax2], [ax3, ax4] ) = plt.subplots( nrows=2, ncols=2, figsize=(8,8) )
 fig.text(0.5, 0.03, 'DFT Calculation', ha='center', fontsize=32)
 fig.text(0.02, 0.5, 'ML Prediction', va='center', rotation='vertical', fontsize=32)
 plt.subplots_adjust(left=0.14, bottom=0.14, right=0.97, top=0.92, wspace=0.30, hspace=0.40)
 plt.rc('font', family='Arial narrow')
 
-Prop_train_temp = copy.deepcopy(Prop_train_latt_fl)
-Pred_train_temp = copy.deepcopy(Pred_train_latt_fl)
-Prop_test_temp  = copy.deepcopy(Prop_test_latt_fl)
-Pred_test_temp  = copy.deepcopy(Pred_test_latt_fl)
 a = [-175,0,125]
 b = [-175,0,125]
 ax1.plot(b, a, c='k', ls='-')
