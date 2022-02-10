@@ -97,7 +97,9 @@ class RFR():
         tpls = list(zip(*[["train" for i in yrp_i], yrp_i]))
         yrp_mi = pd.MultiIndex.from_tuples(tpls)
         yrp_mi.names=["partition", "index"]
-        return pd.DataFrame(list(Y_train_pred), index = yrp_mi, columns = yrp_c)
+        yrp = pd.DataFrame(list(Y_train_pred), index = yrp_mi, columns = yrp_c)
+        yrp = yrp.add_prefix("p_")
+        return yrp
 
     def _test(self):
         Y_test_pred = self.r.predict(self.X_test)
@@ -105,8 +107,10 @@ class RFR():
         ysp_c = self.Y_train.columns
         tpls = list(zip(*[["test" for i in ysp_i], ysp_i]))
         ysp_mi = pd.MultiIndex.from_tuples(tpls)
-        ysp_mi.names=["partition", "index"]        
-        return pd.DataFrame(list(Y_test_pred), index = ysp_mi, columns = ysp_c)
+        ysp_mi.names=["partition", "index"]
+        ysp = pd.DataFrame(list(Y_test_pred), index = ysp_mi, columns = ysp_c)
+        ysp = ysp.add_prefix("p_")
+        return ysp
     
     def train_test_return(self):
         Y_trp = self._train()
