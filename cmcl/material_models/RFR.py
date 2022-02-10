@@ -96,8 +96,8 @@ class RFR():
         yrp_c = self.Y_train.columns
         tpls = list(zip(*[["train" for i in yrp_i], yrp_i]))
         yrp_mi = pd.MultiIndex.from_tuples(tpls)
+        yrp_mi.names=["partition", "index"]
         return pd.DataFrame(list(Y_train_pred), index = yrp_mi, columns = yrp_c)
-    #consider explicitly defining a categoricalindex?
 
     def _test(self):
         Y_test_pred = self.r.predict(self.X_test)
@@ -105,6 +105,7 @@ class RFR():
         ysp_c = self.Y_train.columns
         tpls = list(zip(*[["test" for i in ysp_i], ysp_i]))
         ysp_mi = pd.MultiIndex.from_tuples(tpls)
+        ysp_mi.names=["partition", "index"]        
         return pd.DataFrame(list(Y_test_pred), index = ysp_mi, columns = ysp_c)
     
     def train_test_return(self):
@@ -116,6 +117,8 @@ class RFR():
         stpls = list(zip(*[["test" for i in xs_i], xs_i]))
         xr_mi = pd.MultiIndex.from_tuples(rtpls)
         xs_mi = pd.MultiIndex.from_tuples(stpls)
+        xr_mi.names=["partition", "index"]
+        xs_mi.names=["partition", "index"]
         X_tr = self.X_train
         X_ts = self.X_test
         X_tr.index = xr_mi
@@ -136,11 +139,7 @@ class RFR():
 #  ###  Train Model For Lattice Constant  ###
 #  rfr_prop = GridSearchCV(RandomForestRegressor(), param_grid=param_grid, cv=5)
 #  rfr_comp = GridSearchCV(RandomForestRegressor(), param_grid=param_grid, cv=5)
-#  #rfr_prop.fit(X_prop_train, Y_pbe_train)
-#  rfr_comp.fit(X_comp_train, Y_pbe_train) #doesn't work due to NaNs
-#  Pred_pbe_prop_train = rfr_prop.predict(X_prop_train)
-#  Pred_pbe_prop_test  = rfr_prop.predict(X_prop_test)
-#  
+
 #  ##  Calculate RMSE Values  ##
 #  
 #  Y_test_mse = sklearn.metrics.mean_squared_error(Y_pbe_test, Pred_pbe_test)
