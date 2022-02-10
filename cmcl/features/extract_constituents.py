@@ -1,6 +1,6 @@
 import logging
 logfmt = '[%(levelname)s] %(asctime)s - %(message)s'
-logging.basicConfig(level=logging.DEBUG, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
+logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
 
 import pandas as pd
 import re
