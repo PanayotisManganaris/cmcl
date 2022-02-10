@@ -6,6 +6,7 @@ class SiteCat():
    generate categorical columns based on site populations
    """
    def __init__(self):
+      pass
 
 
 def categorize_mix(df):

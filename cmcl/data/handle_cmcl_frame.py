@@ -288,6 +288,6 @@ class ModelAccessor():
         if self._RFR is None:
             #self._parametrize_RFR()            
             self._do_RFR(X, r=r, t=0.20)
-        return self._RFR.Y_stack, self._RFR.X_stack, self._RFR#.r
+        return self._RFR.Y_stack, self._RFR.X_stack, self._RFR.r
 
 
