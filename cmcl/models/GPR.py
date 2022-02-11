@@ -1,45 +1,31 @@
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+# data handling
+from cmcl.data.handle_cmcl_frame import FeatureAccessor
 
-from pandas import read_csv
-import sklearn
-from sklearn import linear_model
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import normalize
+from sklearn.pipeline import Pipeline
+
+# model checking
 from sklearn.model_selection import cross_validate
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 
-##  ML Model Specific Packages  ##
-from sklearn.linear_model import Lasso
-from sklearn.linear_model import ElasticNet
-from sklearn.ensemble import RandomForestRegressor
+# ML Model Specific Packages
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import DotProduct, WhiteKernel
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, ExpSineSquared
+from sklearn.gaussian_process.kernels import WhiteKernel, ExpSineSquared
 from sklearn.gaussian_process.kernels import Matern, RationalQuadratic
 from sklearn.kernel_ridge import KernelRidge
+
+# model optimization
 from sklearn.model_selection import GridSearchCV
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import WhiteKernel, ExpSineSquared
-import tensorflow.keras as keras
-#import keras
-from keras.models import Sequential
-from keras.layers import Dropout
-from keras.layers import Dense
-from keras.wrappers.scikit_learn import KerasRegressor
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
 
+#data tools
 import numpy as np     
-import csv 
-import copy 
-import random 
-#import mlpy
-import pandas
+import pandas as pd
 import matplotlib.pyplot as plt 
-#from mlpy import KernelRidge                                                                                                                                  
-from sklearn.preprocessing import normalize
-
 
 ##  Choose Dataset Type  ##
 Data = 'PBE'
