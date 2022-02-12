@@ -1,52 +1,98 @@
-# might be prudent to make a new accessor for these catagorizers
-# as most will work only on results of various featurizers
+import pandas as pd
+import numpy as np
 
-class SiteCat():
+class DummyTable():
+    def __init__(self, df):
+        self._validate(df)
+        self.df = df
+        self._cols_before_update = df.columns.values
+
+    @staticmethod
+    def _validate(df):
+        """
+        id cols with lists inside or dicts inside
+        warn
+        """
+        for nncol_name in df.select_dtypes(include=["object"]).columns:
+            el_not_str = df[nncol_name].apply(lambda x: not isinstance(x, str))
+            log = f"""These records contain non-numeric, non-string dtypes:
+            {df.loc[el_not_str, nncol_name].index}"""
+            if el_not_str.any():
+                logging.critical(log)
+                raise ValueError("data is not suitable for one-hot encoding. see log")
+            
+
+    def make_and_get(self):
+        """
+        one-hot-encode categorical variables. Not including Formula, so it can be used on base input easily.
+        can't imagine why you'd want to ohe formula strings
+
+        wishlist: develop logic for prefixing dummy cols
+        """
+        #make in one swoop
+        self.df = pd.get_dummies(self.df.loc[:, self.df.columns != "Formula"])
+        #get indices
+        original = self._cols_before_update
+        updated = self.df.columns.values
+        is_not_original_content = np.vectorize(lambda x: x not in original)
+        ohe_cols_idx = is_not_original_content(updated)
+        ohe_cols = updated[ohe_cols_idx]
+        return ohe_cols
+
+
+class LabelGrouper():
    """
-   generate categorical columns based on site populations
+   groups values in a dataframe by operating on userdefined groups of labels
+
+   equipped to return either a membership summary OR the groupings themselves.
+
+   instantiate using an unpacked dictionary of lists
+
+   {"category1": ["label1", "label2"],
+    "category2": ["label3", "label4"]}
+
+   or pass categories as kwargs to the constructor
+
+   Note, the table to be classified does not need to contain all the labels that define a category
+   allowing dictionaries to be reused across tables
    """
-   def __init__(self):
-      pass
+   def __init__(self, df, **segments):
+      self._df = df
+      self.segments = {}
+      for k, v in segments.items(): #not sure if this is necessary in this case.... kwargs are dict'ed invisibly?
+         self.segments[k] = v
+      #ensure preserved orders
+      self.items = self.segments.items()
+      
+   def _present_index(self, segment):
+      idx = []
+      for label in segment:
+         if label and label in self._df:
+            idx.append(label)
+      return idx
+   
+   def _count_members(self):
+      #currently fixed to column groupings
+      #eventually try inferring axis from label's presence in index/columns
+      self.segment_count = pd.DataFrame([], columns=[item[0] for item in self.items])
+      for col, segment in enumerate([item[1] for item in self.items]):
+         idx = self._present_index(segment)
+         self.segment_count.iloc[:, col] = self._df[idx].notna().sum(axis=1)
 
+   def _save_groups(self):
+      for col, segment in enumerate([item[1] for item in self.items]):
+         idx = self._present_index(segment)
+         yield self._df[idx]
 
-def categorize_mix(df):
-   """
-   Take a perovskites dataframe's composition matrix, and generate a new Mixing column
-   """
-   A_cols = []
-   B_cols = []
-   X_cols = []
-   for label in perovskite_site_members.values:
-       if label[0] and label[0] in df:
-           A_cols.append(label[0])
-       if label[1] and label[1] in df:          
-           B_cols.append(label[1])
-       if label[2] and label[2] in df:
-           X_cols.append(label[2])
-   A_site_occup = df[A_cols]
-   B_site_occup = df[B_cols]
-   X_site_occup = df[X_cols]
-   #if status is not exactly 1 in each row, append to mixtring and set row Mixing to mixstring
-   A_site_stat = A_site_occup.notna().sum(axis=1)
-   B_site_stat = B_site_occup.notna().sum(axis=1)
-   X_site_stat = X_site_occup.notna().sum(axis=1)
-   mixlog = pd.concat([A_site_stat, B_site_stat, X_site_stat], axis=1)
+   def sum_groups(self):
+      """
+      returns segment_count -- a row-wise count of non-NaN values per group
+      """
+      self._count_members()
+      return self.segment_count
 
-   def mixreader(row):
-      mixstring = " & "
-      stringlist=[]
-      if row[0] != 1:
-         stringlist.append("A")
-      if row[1] != 1:
-         stringlist.append("B")
-      if row[2] != 1:
-         stringlist.append("X")
-      if stringlist:
-         stringlist[-1] = stringlist[-1] + "-site"
-      if not stringlist:
-         stringlist.append("Pure")
-      mixstring = mixstring.join(stringlist)
-      return mixstring
-
-   df.Mixing = mixlog.apply(lambda row: mixreader(row), axis=1)
-     
+   def get_groups(self):
+      """
+      returns the groups themselves as a tuple
+      """
+      return tuple(self._save_groups())

@@ -6,16 +6,15 @@ import pandas as pd
 import numpy as np
 #access feature computers
 from cmcl.features.extract_constituents import CompositionTable
-from cmcl.features.extract_dummies import DummyTable
-
-#access category generators
-from cmcl.features.extract_categories import SiteCat
 
 #access transformers
+from cmcl.features.extract_categories import DummyTable
+from cmcl.features.extract_categories import LabelGrouper
+
 from cmcl.transforms.PCA import PCA
 
 #access models
-from cmcl.material_models.RFR import RFR
+from cmcl.models.RFR import RFR
 
 # feature accessors should saveable in some way for future use/reporting
 
@@ -25,27 +24,19 @@ from cmcl.material_models.RFR import RFR
 @pd.api.extensions.register_dataframe_accessor("ft")
 class FeatureAccessor():
     """
-    Conveniently and robustly define and retrieve training/target tables
+    Conveniently and robustly define and retrieve feature tables
 
     when table does not exist, it will be created.
 
-    wishlist:
-    - keep track of accessor objects in db for working with
-    stored tables. store cols lists as df._metadata? or a textdoc changelog?
-    - if no targets exist, flag modelers to notify user.
-
-    Human descriptors:
-    human = CmclFrame.ft.human = CmclFrame["Formula", "Mixing"[, "Supercell"]]
-
     basic chemical descriptors:
-    composition_tbl = CmclFrame.ft.comp
-    prop_tbl = CmclFrame.ft.prop
-
+    composition_tbl = CmclFrame.ft.comp()
+    prop_tbl = CmclFrame.ft.prop()
+    
     pymatgen descriptors:
-    matminer_tbl = CmclFrame.ft.mtmr
+    matminer_tbl = CmclFrame.ft.mtmr()
 
     MEGnet descriptors:
-    meg_tbl = CmclFrame.meg
+    meg_tbl = CmclFrame.meg()
     """
 
     def __init__(self, df):
@@ -124,8 +115,8 @@ class FeatureAccessor():
         print("megnet Not Implemented")
 
 
-@pd.api.extensions.register_dataframe_accessor("sm")
-class SummaryAccessor():
+@pd.api.extensions.register_dataframe_accessor("ABX")
+class PerovskiteAccessor():
     """
     Conveniently and robustly define and retrieve categorical summaries of data
 
@@ -160,20 +151,35 @@ class SummaryAccessor():
     def base(self):
         return self._df
         
-    def _make_mix(self):
-        extender = MixSeries(self._df)
-        self._mix_cols = extender.make_and_get()
-        self._mix_mod_df = extender.df
-
-    def _get_mix(self):
-        return self._mix_mod_df[self._mix_cols]
+    def _mixreader(self, row):
+      mixstring = " & "
+      stringlist=[]
+      if row[0] != 1:
+         stringlist.append("A")
+      if row[1] != 1:
+         stringlist.append("B")
+      if row[2] != 1:
+         stringlist.append("X")
+      if stringlist:
+         stringlist[-1] = stringlist[-1] + "-site"
+      if not stringlist:
+         stringlist.append("Pure")
+      mixstring = mixstring.join(stringlist)
+      return mixstring
 
     def mix(self):
-        if self._mix_cols is None:
-            self._make_mix()
-        return self._get_mix()
-
-        
+        """
+        provides default access to ColumnGrouper. categorizes
+        perovskite's by site mixing when applied to a composition
+        table.
+        """
+        segments = {"A":["MA", "FA", "Cs", "Rb", "K"],
+                    "B":["Pb", "Sn", "Ge", "Ba", "Sr", "Ca", "Be", "Mg", "Si", "V", "Cr", "Mn", "Fe", "Ni", "Zn", "Pd", "Cd", "Hg"],
+                    "X":["I", "Br", "Cl"]}
+        extender = ColumnGrouper(self._df, **segments)
+        mixlog = extender.sum_groups()
+        return mixlog.apply(lambda row: self._mixreader(row), axis=1)
+                
 @pd.api.extensions.register_dataframe_accessor("tf")
 class TransformAccessor():
     """
