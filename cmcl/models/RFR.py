@@ -46,11 +46,10 @@ class RFR():
         # make it an option to pass a list of splits
         # and get a dataframe that is condusive to learning curve plotting        
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(X, Y, test_size=t)
-
-        self.X_train.assign(partition=["train" for i in self.X_train.index]).set_index('partition', append=True)
-        self.X_test.assign(partition=["test" for i in self.X_test.index]).set_index('partition', append=True)
-        self.Y_train.assign(partition=["train" for i in self.Y_train.index]).set_index('partition', append=True)
-        self.Y_test.assign(partition=["test" for i in self.Y_test.index]).set_index('partition', append=True)
+        self.X_train.assign(partition="train").set_index('partition', append=True, inplace=True)
+        self.X_test.assign(partition="test").set_index('partition', append=True, inplace=True)
+        self.Y_train.assign(partition="train").set_index('partition', append=True, inplace=True)
+        self.Y_test.assign(partition="test").set_index('partition', append=True, inplace=True)
 
         #if optimize:
         #    #do a type of RFR optimization -- define later as wrapper around gridsearch?
@@ -94,8 +93,8 @@ class RFR():
     def _train(self):
         self.r.fit(self.X_train, self.Y_train)
         Y_train_pred = self.r.predict(self.X_train)
-        yrp_i = self.X_train.index
-        yrp_c = self.X_train.columns
+        yrp_i = self.X_train.index #whatever the original split order, the input decides
+        yrp_c = self.Y_train.columns
         yrp = pd.DataFrame(list(Y_train_pred), index = yrp_i, columns = yrp_c)
         yrp = yrp.add_prefix("p_")
         return yrp
@@ -113,8 +112,6 @@ class RFR():
         Y_tsp = self._test()
         X_tr = self.X_train
         X_ts = self.X_test
-        X_tr.index = xr_mi
-        X_ts.index = xs_mi
         self.X_stack = pd.concat([X_tr, X_ts], axis = 0)
         self.Y_stack = pd.concat([Y_trp, Y_tsp], axis = 0)
         if not self._ret_r:
