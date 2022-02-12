@@ -65,8 +65,13 @@ class RFR():
             # in future, RFR could be a subclass of the general "regression" object
             # parametrization is specific, the rest is general...
             self.r = r
+        elif r and r=="tmp" or r=="temporary":
+            self.r = RandomForestRegressor()
+            self._ret_r = False
+            self._parametrize()
         else:
             self.r = RandomForestRegressor()
+            self._ret_r = True
             self._parametrize()
 
     def _parametrize(self):
@@ -129,6 +134,8 @@ class RFR():
         X_ts.index = xs_mi
         self.X_stack = pd.concat([X_tr, X_ts], axis = 0)
         self.Y_stack = pd.concat([Y_trp, Y_tsp], axis = 0)
+        if not self._ret_r:
+            self.r = None # little cludgy?
 
 #  ##  Define Random Forest Hyperparameter Space  ##
 #  #param_grid = {
