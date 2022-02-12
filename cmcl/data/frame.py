@@ -154,16 +154,22 @@ class PerovskiteAccessor():
     def _mixreader(self, row):
       mixstring = " & "
       stringlist=[]
-      if row[0] != 1:
-         stringlist.append("A")
-      if row[1] != 1:
-         stringlist.append("B")
-      if row[2] != 1:
-         stringlist.append("X")
+      if row[0] > 1:
+          stringlist.append("A")
+      elif row[0] < 1:
+          stringlist.append("error")
+      if row[1] > 1:
+          stringlist.append("B")
+      elif row[1] < 1:
+          stringlist.append("error")
+      if row[2] > 1:
+          stringlist.append("X")
+      elif row[2] < 1:
+          stringlist.append("error")
       if stringlist:
-         stringlist[-1] = stringlist[-1] + "-site"
+          stringlist[-1] = stringlist[-1] + "-site"
       if not stringlist:
-         stringlist.append("Pure")
+          stringlist.append("Pure")
       mixstring = mixstring.join(stringlist)
       return mixstring
 
@@ -178,7 +184,9 @@ class PerovskiteAccessor():
                     "X":["I", "Br", "Cl"]}
         extender = LabelGrouper(self._df, **segments)
         mixlog = extender.sum_groups()
-        return mixlog.apply(lambda row: self._mixreader(row), axis=1)
+        mixing = mixlog.apply(lambda row: self._mixreader(row), axis=1)
+        mixing.name="mixing"
+        return mixing
                 
 @pd.api.extensions.register_dataframe_accessor("tf")
 class TransformAccessor():
@@ -190,7 +198,7 @@ class TransformAccessor():
     these transforms can be applied to any X.ft.function()
     with a simple one-liner
     
-    X.ft.comp().ft.ohe()
+    X.ft.comp().tf.pca()
 
     provides signal analysis transforms
     FFT, Hilbert, etc
@@ -269,18 +277,12 @@ class ModelAccessor():
     def base(self):
         return self._df
         
-    #def _parametrize_RFR(self, ntrees=100, max_features="sqrt", optimize=False):
-    #    self._RFR = extender.r
-    #    # take arguments from user, somehow, to customize the fit/interrogate the predictor
-    #    pass
-    # maybe... no sure how best to do optimization
-
-    def _do_RFR(self, X, r=None, t=0.20): #extend args?
-        modeler = RFR(X, self._df, t=t, r=r)
+    def _do_RFR(self, X, **kwargs): #extend args?
+        modeler = RFR(X, self._df, **kwargs)
         modeler.train_test_return()
         self._RFR = modeler
 
-    def RFR(self, X, r=None):
+    def RFR(self, X, **kawrgs):
         """
         return a model of Y based on X, The form of X used,
         and optionally the model used to get Y.
@@ -292,6 +294,5 @@ class ModelAccessor():
         IndexSlice module, or the .xs (cross section) method.
         """
         if self._RFR is None:
-            #self._parametrize_RFR()            
-            self._do_RFR(X, r=r, t=0.20)
+            self._do_RFR(X, **kwargs)
         return self._RFR.Y_stack, self._RFR.X_stack, self._RFR.r

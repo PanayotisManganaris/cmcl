@@ -37,15 +37,16 @@ class RFR():
     information to select the train/test subset, however it was
     generated.
     """
-    def __init__(self, X, Y, t=0.20, r=None):
+    def __init__(self, X, Y, **kwargs):
         """
         instantiate regressor object and data for specific regression
 
         initially regressor is instantiated with some defaults
         """
-        # make it an option to pass a list of splits
-        # and get a dataframe that is condusive to learning curve plotting        
-        self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(X, Y, test_size=t)
+        for k,v in kwargs.item():
+            setattr(self, k, v)
+            
+        self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(X, Y, test_size=self.t)
         self.X_train = self.X_train.assign(partition="train").set_index('partition', append=True)
         self.X_test = self.X_test.assign(partition="test").set_index('partition', append=True)
         self.Y_train = self.Y_train.assign(partition="train").set_index('partition', append=True)
@@ -56,14 +57,13 @@ class RFR():
         #    self.r = RandomForestRegressor(n_estimators=ntrees, max_features=max_features)
         #else:
         #    #need a good way of choosing defaults automatically...
-        #    self.r = RandomForestRegressor(n_estimators=ntrees, max_features=max_features)
-        if r and isinstance(r, RandomForestRegressor):
-            # in future, RFR could be a subclass of the general "regression" object
+        
+        if self.r and isinstance(self.r, RandomForestRegressor):
+            # RFR could be a subclass of the general "regression" object
             # parametrization is specific, the rest is general...
-            self.r = r
             self._ret_r = True
             self._parametrize()
-        elif r and r=="tmp" or r=="temporary":
+        elif self.r and self.r=="tmp" or self.r=="temporary":
             self.r = RandomForestRegressor()
             self._ret_r = False
             self._parametrize()
