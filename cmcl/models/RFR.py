@@ -7,20 +7,12 @@ logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logf
 
 # data handling
 from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import normalize
-from sklearn.pipeline import Pipeline
 
 # ML Model Specific Packages
 from sklearn.ensemble import RandomForestRegressor
 
 # model init 
 from sklearn.model_selection import train_test_split
-
-# model validation
-from sklearn.model_selection import KFold
-from sklearn.model_selection import cross_validate
-from sklearn.model_selection import cross_val_score
-
 
 # model optimization
 from sklearn.model_selection import GridSearchCV
@@ -29,7 +21,6 @@ from sklearn.model_selection import GridSearchCV
 import numpy as np
 import pandas as pd
 import sqlite3
-import matplotlib.pyplot as plt
 
 class RFR():
     """
@@ -55,6 +46,12 @@ class RFR():
         # make it an option to pass a list of splits
         # and get a dataframe that is condusive to learning curve plotting        
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(X, Y, test_size=t)
+
+        self.X_train.assign(partition=["train" for i in self.X_train.index]).set_index('partition', append=True)
+        self.X_test.assign(partition=["test" for i in self.X_test.index]).set_index('partition', append=True)
+        self.Y_train.assign(partition=["train" for i in self.Y_train.index]).set_index('partition', append=True)
+        self.Y_test.assign(partition=["test" for i in self.Y_test.index]).set_index('partition', append=True)
+
         #if optimize:
         #    #do a type of RFR optimization -- define later as wrapper around gridsearch?
         #    self.r = RandomForestRegressor(n_estimators=ntrees, max_features=max_features)
@@ -93,41 +90,27 @@ class RFR():
                              'random_state': None,
                              'verbose': 0,
                              'warm_start': False})
-
+                
     def _train(self):
         self.r.fit(self.X_train, self.Y_train)
         Y_train_pred = self.r.predict(self.X_train)
-        yrp_i = self.Y_train.index.to_list()
-        yrp_c = self.Y_train.columns
-        tpls = list(zip(*[["train" for i in yrp_i], yrp_i]))
-        yrp_mi = pd.MultiIndex.from_tuples(tpls)
-        yrp_mi.names=["partition", "index"]
-        yrp = pd.DataFrame(list(Y_train_pred), index = yrp_mi, columns = yrp_c)
+        yrp_i = self.X_train.index
+        yrp_c = self.X_train.columns
+        yrp = pd.DataFrame(list(Y_train_pred), index = yrp_i, columns = yrp_c)
         yrp = yrp.add_prefix("p_")
         return yrp
 
     def _test(self):
         Y_test_pred = self.r.predict(self.X_test)
-        ysp_i = self.Y_test.index.to_list()
-        ysp_c = self.Y_train.columns
-        tpls = list(zip(*[["test" for i in ysp_i], ysp_i]))
-        ysp_mi = pd.MultiIndex.from_tuples(tpls)
-        ysp_mi.names=["partition", "index"]
-        ysp = pd.DataFrame(list(Y_test_pred), index = ysp_mi, columns = ysp_c)
+        ysp_i = self.X_test.index
+        ysp_c = self.Y_test.columns
+        ysp = pd.DataFrame(list(Y_test_pred), index = ysp_i, columns = ysp_c)
         ysp = ysp.add_prefix("p_")
         return ysp
     
     def train_test_return(self):
         Y_trp = self._train()
         Y_tsp = self._test()
-        xr_i = self.X_train.index.to_list()
-        xs_i = self.X_test.index.to_list()
-        rtpls = list(zip(*[["train" for i in xr_i], xr_i]))
-        stpls = list(zip(*[["test" for i in xs_i], xs_i]))
-        xr_mi = pd.MultiIndex.from_tuples(rtpls)
-        xs_mi = pd.MultiIndex.from_tuples(stpls)
-        xr_mi.names=["partition", "index"]
-        xs_mi.names=["partition", "index"]
         X_tr = self.X_train
         X_ts = self.X_test
         X_tr.index = xr_mi
@@ -150,7 +133,7 @@ class RFR():
 #  ###  Train Model For Lattice Constant  ###
 #  rfr_prop = GridSearchCV(RandomForestRegressor(), param_grid=param_grid, cv=5)
 #  rfr_comp = GridSearchCV(RandomForestRegressor(), param_grid=param_grid, cv=5)
-
+#
 #  ##  Calculate RMSE Values  ##
 #  
 #  Y_test_mse = sklearn.metrics.mean_squared_error(Y_pbe_test, Pred_pbe_test)
@@ -158,6 +141,3 @@ class RFR():
 #  print('rmse_test_matrix = ', np.sqrt(Y_test_mse))
 #  print('rmse_train_matrix = ', np.sqrt(Y_train_mse))
 #  print('      ')
-#  
-#  
-#  
