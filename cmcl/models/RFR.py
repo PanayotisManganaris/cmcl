@@ -46,10 +46,10 @@ class RFR():
         # make it an option to pass a list of splits
         # and get a dataframe that is condusive to learning curve plotting        
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(X, Y, test_size=t)
-        self.X_train.assign(partition="train").set_index('partition', append=True, inplace=True)
-        self.X_test.assign(partition="test").set_index('partition', append=True, inplace=True)
-        self.Y_train.assign(partition="train").set_index('partition', append=True, inplace=True)
-        self.Y_test.assign(partition="test").set_index('partition', append=True, inplace=True)
+        self.X_train = self.X_train.assign(partition="train").set_index('partition', append=True)
+        self.X_test = self.X_test.assign(partition="test").set_index('partition', append=True)
+        self.Y_train = self.Y_train.assign(partition="train").set_index('partition', append=True)
+        self.Y_test = self.Y_test.assign(partition="test").set_index('partition', append=True)
 
         #if optimize:
         #    #do a type of RFR optimization -- define later as wrapper around gridsearch?
@@ -61,6 +61,8 @@ class RFR():
             # in future, RFR could be a subclass of the general "regression" object
             # parametrization is specific, the rest is general...
             self.r = r
+            self._ret_r = True
+            self._parametrize()
         elif r and r=="tmp" or r=="temporary":
             self.r = RandomForestRegressor()
             self._ret_r = False
