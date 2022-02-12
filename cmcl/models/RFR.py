@@ -43,7 +43,7 @@ class RFR():
 
         initially regressor is instantiated with some defaults
         """
-        for k,v in kwargs.item():
+        for k,v in kwargs.items():
             setattr(self, k, v)
             
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(X, Y, test_size=self.t)

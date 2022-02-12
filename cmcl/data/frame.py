@@ -282,7 +282,7 @@ class ModelAccessor():
         modeler.train_test_return()
         self._RFR = modeler
 
-    def RFR(self, X, **kawrgs):
+    def RFR(self, X, **kwargs):
         """
         return a model of Y based on X, The form of X used,
         and optionally the model used to get Y.
