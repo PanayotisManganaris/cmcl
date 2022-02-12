@@ -46,7 +46,7 @@ class RFR():
         for k,v in kwargs.items():
             setattr(self, k, v)
             
-        self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(X, Y, test_size=self.t)
+        self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(X, Y, train_size=self.t)
         self.X_train = self.X_train.assign(partition="train").set_index('partition', append=True)
         self.X_test = self.X_test.assign(partition="test").set_index('partition', append=True)
         self.Y_train = self.Y_train.assign(partition="train").set_index('partition', append=True)
@@ -93,7 +93,7 @@ class RFR():
                              'warm_start': False})
                 
     def _train(self):
-        if self.Y_train.values.shape[1] = 1:
+        if self.Y_train.values.shape[1] == 1:
             self.r.fit(self.X_train, self.Y_train.values.ravel())
         else:
             self.r.fit(self.X_train, self.Y_train)
