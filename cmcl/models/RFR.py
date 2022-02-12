@@ -93,7 +93,7 @@ class RFR():
                              'warm_start': False})
                 
     def _train(self):
-        self.r.fit(self.X_train, self.Y_train)
+        self.r.fit(self.X_train, self.Y_train.values.ravel())
         Y_train_pred = self.r.predict(self.X_train)
         yrp_i = self.X_train.index #whatever the original split order, the input decides
         yrp_c = self.Y_train.columns

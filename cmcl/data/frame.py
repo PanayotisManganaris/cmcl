@@ -273,15 +273,15 @@ class ModelAccessor():
         flag weather categorical or continuous?
         """
         pass
-
+    
     def base(self):
         return self._df
-        
+    
     def _do_RFR(self, X, **kwargs): #extend args?
         modeler = RFR(X, self._df, **kwargs)
         modeler.train_test_return()
         self._RFR = modeler
-
+    
     def RFR(self, X, **kwargs):
         """
         return a model of Y based on X, The form of X used,
