@@ -74,6 +74,8 @@ class LabelGrouper():
    def _count_members(self):
       #currently fixed to column groupings
       #eventually try inferring axis from label's presence in index/columns
+      if not self._df.isnull().values.any():
+          print(f"WARNING: dataframe contains no null values! LabelGrouper.sum_groups() may not perform as expected.")
       self.segment_count = pd.DataFrame([], columns=[item[0] for item in self.items])
       for col, segment in enumerate([item[1] for item in self.items]):
          idx = self._present_index(segment)

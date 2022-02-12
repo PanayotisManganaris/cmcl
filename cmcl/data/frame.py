@@ -176,7 +176,7 @@ class PerovskiteAccessor():
         segments = {"A":["MA", "FA", "Cs", "Rb", "K"],
                     "B":["Pb", "Sn", "Ge", "Ba", "Sr", "Ca", "Be", "Mg", "Si", "V", "Cr", "Mn", "Fe", "Ni", "Zn", "Pd", "Cd", "Hg"],
                     "X":["I", "Br", "Cl"]}
-        extender = ColumnGrouper(self._df, **segments)
+        extender = LabelGrouper(self._df, **segments)
         mixlog = extender.sum_groups()
         return mixlog.apply(lambda row: self._mixreader(row), axis=1)
                 
@@ -295,5 +295,3 @@ class ModelAccessor():
             #self._parametrize_RFR()            
             self._do_RFR(X, r=r, t=0.20)
         return self._RFR.Y_stack, self._RFR.X_stack, self._RFR.r
-
-
