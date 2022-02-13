@@ -12,49 +12,126 @@
 #+exclude_tags: noexport
 #+creator: Emacs 29.0.50 (Org mode 9.5.2)
 #+cite_export:
-* Contents
-Command line app for training, optimizing, and evaluating
-a variety of ML models: random forest (RFR.py), Gaussian process
-(GPR.py) and neural network (NN.py) regression.
+* Overview
+This README also serves as a design document. Any heading marked TODO may as well be wishful thinking.
+** On the Shoulders of Giants
+*** Data
+cmcl is a highlevel library for performing machine learning with
+chemical datasets and analyzing the results.
 
-Generally will function for arbitrary datasets?
+It is built around Pandas. This ensures data is handled efficiently as
+it is processed through any variety of inquiries, transformations,
+and mapping operations enabled through the succinct and powerful
+Pandas api
 
-Comes equipped with some predictors optimized for Perovskite
-compositions and outputs
+It also leverages the Pandas tabular data to ensure complex data
+is never presented to the user as an inscrutable array.
+*** NEXT Models -- add citations!
+:STATUSLOG:
+- State "NEXT"       from              [2022-02-13 Sun 16:02]
+:END:
+cmcl strives to improve the user interface of various machine learning
+libraries, by unifying them with the pandas API through a .model Accessor
+method:
+- scikit-learn
+  - RFR -- ambition, generalize to ensemble regressors
+- tensorflow
+  - early wip
+- sisso
+  - early wip
+*** NEXT Chemistry Featurization
+:STATUSLOG:
+- State "NEXT"       from "TODO"       [2022-02-13 Sun 16:02]
+:END:
+cmcl's main offer is easy featurization of chemical datasets.
 
-Also equipped with a chemical formula parser to automatically convert
-a variety of formula strings into numerical descriptors.
-* Usage
-** make a commandline interface
-*** learning curve
-test efficacy for multiple training set sizes
-*** hyperparameters
-gridsearch
-**** future:
-beyesian prediction
-*** quick train
-take nothing but composition and targets/ composition to predict
+Tabular records of chemical formula and associated observations need
+only be loaded as a dataframe before cmcl's formula parser can be used
+to convert formula strings into equivalent numerical descriptors.
 
-and compute composition descriptor and properties descriptor matrices
+(WIP)
+Furthermore, this composition data -- itself a dataframe -- can be
+reprocessed by applying groupwise aggregations based on a separate
+table of chemical properties
 
-use a pretrained best model pickled in.
-**** pick from
-1. rfr
-2. NN
-3. GRR
-4. combo?
+(WIP)
+Alternatively, the compositions can be processed into further feature
+sets using a variety of libraries
+- pymatgen's implementation of Dscribe [[cite:&himanen-2020-dscrib]]
+- MEGnet
+*** TODO Visualization
+Model visualization is dependent on matplotlib. A custom pandas
+plotting backend called spyglass -- also an early work in progress --
+is being developed in parallel for automating the process of producing
+Mannodi Group standard exploratory plots and publication quality figures
+** Specialized Features
+*** TODO Data Aggregation
+cmcl exposes itself as a commandline tool designed to aggregate
+computational data from VASP and Quantum Espresso experiment directory
+trees
+*** TODO Data Transformation
+cmcl readily provides data transformations in some hybrid of the sense
+meant by sklearn and pandas. any given datafram can be subject to:
+- pca
+- tsne
+These manipulations are performed through an extension to the pandas
+transformer api (or maybe it's easier done through adedicated
+accessor) however, the sklearn methods used to compute the
+transformations do not necessarily preserve the table's rank.
+**** Notice
+Users should note the topological nature of compositional and
+composition-derived data features. PCA may reveal artificial
+variance/clustering in insufficiently graduated chemical spaces.
+*** TODO Communication and Research Reproducibility
+cmcl can be installed with a set of pretrained and optimized
+predictors for Perovskite semiconductors developed by the Mannodi Group.
+* Installation
+cmcl is very early in development.
+** Install by cloning the repository
+cmcl can be installed locally in editable mode for the time being. It
+is a poetry project and is best installed using the poetry
+package+environment manager. To which I can say: I *think* i've set up
+the configuration correctly.
 
-**** optional save model
-*** quick predict
-put formula get values
-** TODO add experimental dataset
-separate module to compare experimental ground truth with
-computational
-** TODO add inverse design module
+For steadfast conda users:
+1. create an empty conda env
+2. conda install pip locally
+3. pip install poetry
+4. poetry install cmcl
+
+proceed to run your python process/jupyter kernel of choice and enjoy.
+* Contribution
+Thank you. Note: I am at best an amateur developer, but I try.
+* Usage Examples
+** Quick Scikit-Learn Random Forest Regression
+#+begin_src jupyter-python :session "py" :exports "both" :results "raw drawer"
+  import pandas as pd
+  from cmcl.data.frame import *
+  ## load data
+  df = pd.read_whatever(data)
+  #df.Formula or df.formula must exist as a data column.
+  #there's a fairly broad range of acceptable formula grammer
+  comp_matrix = df.ft.comp()
+  target_prediction, shuffled_comp_matrix, regressor_obj = df.target.model.RFR(comp_matrix)
+  total_df = pd.concat([df, comp_matrix, target_prediction], axis=1)
+#+end_src
+The dataframe index is shuffled but preserved. index-in = index-out.
+So, the predictions may be merged/concatenated with the original data.
+** TODO Pandas-ified model metric evaluations
+a convenient pandas centric api for quantifying model performance via
+familiar sci-kit learn methods is being designed
+** learning curve
+test efficacy of a model for multiple training set sizes while retaining awarness of record indices
+
+** TODO hyperparameter optimization
+*** grid search
+*** beyesian search
+** TODO inverse design
 mannodi and kern style GA
-** TODO model improvement guide module
-
-* Builtin Dataset
+** TODO model improvement guide
+ideally, cmcl will in some limited way enable researchers to "master
+their dataset" relatively painlessly
+* Associated Dataset
 The dataset was formerly integral to the project.
 
 The new architecture makes use of an external database.
@@ -63,62 +140,11 @@ this can be found on the group box folder
 #+begin_example
 $ rclone sync purduebox:/Mannodi_group_research_material/Perovskite\ Dataset/perovskites.db
 #+end_example
-
-* Model Strategy
-Train 3 ML models for HSE properties, for HSE_latt, HSE_gap, and
-HSE_decomp.
-
-Train 6 ML models for PBE properties, for PBE_latt, PBE_gap,
-PBE_decomp, and PV_FOM and SLME_5 or 100um.
-
-** level of theory exclusive
-train using only either 550 PBE or 299 HSE predictions
-
-** level of theory inclusive
-train using BOTH levels of theory.
-
-** TODO Enhanced featurization
-produce alternative or enlarged feature sets and train on those and
-transformations of those.
-
-*** PCA
-unitary transformation of feature set
-
-caution -- topological nature of both current composition and magpie
-properties
-
-Also, use this to identify notable outliers.-- identify outlier
-compositions
-*** tsne
-nonlinear manifold transformations
-*** UMAP
-still very new
-*** sisso
-generate buckingham-pi style nondimensional fits for multidimensional
-data spaces.
-** TODO produce learning curve
-For each model type, evaluate AVERAGE accuracy vs error as a funciton of
-training set size.
-** Outside predictions
-generate input vectors for new data and use as additional tests
-*** sources
+* External Datasets 
 compare model to experimental results for validation
 1. [[cite:&almora-2020-devic-perfor]] meta-analysis of Perovskite PV devices.
 2. more literature compounds.
 3. Materials Zone aggregate database.
-
-* model minutea
-SLME is going to be zero for excessively high bandgaps
-
-it may be necessary to predict SLME USING predicted bandgap for fresh
-compounds. -- train binary classifier as first filtration strategy.
-
-** SLME
-a spectral property
-#+DOWNLOADED: screenshot @ 2022-02-03 14:50:54
-#+attr_latex: :width 350
-[[file:2022-02-03_14-50-54_screenshot.png]]
-
 * Citations
 bibliographystyle:authordate1
 bibliography:~/org/bibliotex/bibliotex.bib

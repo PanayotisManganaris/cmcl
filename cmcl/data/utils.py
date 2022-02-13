@@ -1,3 +1,9 @@
+# pandas-ifications of sklearn.metrics utilities should probably be defined in
+# a separate namespace and given their own data accessor.
+# basically, they'll be ?aggregator? functions for use with the groupby api
+
+# otherwise, some plotting "setup" functions may go here to work with the axis objects returned by the spyglass backend.
+
 def match_labels(p_cols, e_cols):
     matched = []
     for e_col in e_cols:
