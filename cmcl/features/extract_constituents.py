@@ -165,7 +165,6 @@ class CompositionTable():
         self.compdf = pd.DataFrame([])
         self.compdf.index = df.index
         self._validate(df)
-        self._cols_before_update = df.columns.values
 
     @staticmethod
     def _validate(df):
