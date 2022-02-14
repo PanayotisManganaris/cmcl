@@ -47,8 +47,7 @@ class FeatureAccessor():
         self._ohe_mod_df = None
         self._ohe_cols = None
         #getting physical comp features
-        self._comp_mod_df = None
-        self._comp_cols = None
+        self._comp_df = None
         
     @staticmethod
     def _validate(df):
@@ -57,18 +56,10 @@ class FeatureAccessor():
         a series of Formula
         at least one series of measurements
         """
-        #notice: this sort of specifc validation should be done by the respective featurizers
         # only general checks should be done here
         pass
-        #         if df.columns.values.shape[0] < 2:
-        #             pass #warn user no ml can be done on current data
-        #         else:
-        #             pass
-        #         if "Formula" not in df.columns:
-        #             if "formula" in df.columns:
-        #                 df.rename(columns = {"formula":"Formula"})
-        #             else:
-        #                 raise AttributeError("No Formula Column Named")
+        # if df.columns.values.shape[0] < 2:
+        #     #warn user no ml can be done on current data
 
     def base(self):
         return self._df
@@ -86,25 +77,15 @@ class FeatureAccessor():
             self._make_ohe()
         return self._get_ohe()
 
-    def _make_comp(self):
-        """get array of formula's constituent quantities"""
-        extender = CompositionTable(self._df)
-        self._comp_cols = extender.make_and_get()
-        self._comp_mod_df = extender.df
-
-    def _get_comp(self):
-        return self._comp_mod_df[self._comp_cols]
-
-    def comp(self):
+    def comp(self, regen=False):
         """
-        once called, the resulting training set is static?
-        note to self: maybe calling the accessor on new records added to the dataframe resets it...
+        Default call accesses or creates composition table.
+        call with regen=True to regenerate existing composition table
         """
-        if self._comp_cols is None:
-            self._make_comp()
-        return self._get_comp()
-
-    
+        if self._comp_df is None or regen:
+            feature = CompositionTable(self._df)
+            self._comp_df = feature.get()
+        return self._comp_df
     
     def mtmr(self):
         """get array of dscribe inorganic crystal properties"""
