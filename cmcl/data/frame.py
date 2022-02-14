@@ -43,11 +43,10 @@ class FeatureAccessor():
         self._validate(df)
         #getting original
         self._df = df
-        #getting dummies 
-        self._ohe_mod_df = None
-        self._ohe_cols = None
-        #getting physical comp features
-        self._comp_df = None
+        #storing dummies 
+        self._ohedf = None
+        #storing physical comp features
+        self._compdf = None
         
     @staticmethod
     def _validate(df):
@@ -64,28 +63,21 @@ class FeatureAccessor():
     def base(self):
         return self._df
         
-    def _make_ohe(self):
-        extender = DummyTable(self._df)
-        self._ohe_cols = extender.make_and_get()
-        self._ohe_mod_df = extender.df
-
-    def _get_ohe(self):
-        return self._ohe_mod_df[self._ohe_cols]
-
-    def ohe(self):
-        if self._ohe_cols is None:
-            self._make_ohe()
-        return self._get_ohe()
+    def ohe(self, regen=False):
+        if self._ohe_cols is None or regen:
+            feature = DummyTable(self._df)
+            self._ohedf = feature.make()
+        return self._ohedf
 
     def comp(self, regen=False):
         """
         Default call accesses or creates composition table.
         call with regen=True to regenerate existing composition table
         """
-        if self._comp_df is None or regen:
+        if self._compdf is None or regen:
             feature = CompositionTable(self._df)
-            self._comp_df = feature.get()
-        return self._comp_df
+            self._compdf = feature.make()
+        return self._compdf
     
     def mtmr(self):
         """get array of dscribe inorganic crystal properties"""
