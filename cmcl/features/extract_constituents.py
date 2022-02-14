@@ -159,24 +159,37 @@ class CompositionTable():
     starting with only series of Formula strings, obtain dataframe
     of formulas' constituent quantities
 
-    mutate given dataframe in place and pass self indices to FeatureAccessor.
+    Create Dataframe of Compositions and pass to FeatureAccessor for future reference.
     """
     def __init__(self, df):
+        self.compdf = pd.DataFrame([])
+        self.compdf.index = df.index
         self._validate(df)
-        self.df = df#.loc[:]
-        logging.debug(f"CT acts on a view {self.df.values.base is df.values.base}")
-        logging.debug(f"CT acts on a copy {self.df._is_copy}")
         self._cols_before_update = df.columns.values
 
     @staticmethod
     def _validate(df):
-        """make sure formula strings are of the expected form"""
-        pass
+        """
+        make sure Formula "column" exists and Formula strings are of
+        the expected form
+        """
+        if "Formula" or "formula" in df:
+            try:
+                self.Formula = df.Formula
+            except AttributeError:
+                self.Formula = df.formula
+        elif "Formula" or "formula" in df.index.names:
+            try:
+                self.Formula = df.index.get_level_values("Formula").to_series()
+            except AttributeError:
+                self.Formula = df.index.get_level_values("formula").to_series()
+        else:
+            raise AttributeError("No 'Formula' column label or Index level recognized.")
 
     def make(self):
-         # normalize string encoding!
-        self.df.Formula = self.df.Formula.apply(lambda entry: "".join(list(map(unidecode, entry))))
-        compdict_s = self.df.Formula.apply(process_formula)
+        # normalize string encoding!
+        self.Formula = self.Formula.apply(lambda entry: "".join(list(map(unidecode, entry))))
+        compdict_s = self.Formula.apply(process_formula)
         compdf = pd.DataFrame(compdict_s.to_list())
         comp_s_dict = compdf.to_dict()
         comp_dict = {}
@@ -184,21 +197,23 @@ class CompositionTable():
             comp_dict[k] = list(v.values())
         return comp_dict
 
-    def get(self):
-        original = self._cols_before_update
-        logging.debug(f"original cols: {original}")
-        updated = self.df.columns.values
-        logging.debug(f"all cols: {updated}")
-        is_not_original_content = np.vectorize(lambda x: x not in original)
-        comp_cols_idx = is_not_original_content(updated)
-        logging.debug(f"bool cols: {comp_cols_idx}")
-        comp_cols = updated[comp_cols_idx]
-        logging.debug(f"comp cols: {comp_cols}")
-        logging.debug(f"comp cols type: {type(comp_cols)}")
-        return comp_cols
+    # design change: featurizers simply return the feature dataframe
+    # with a correct index joining tables is left to the user -- which
+    # is easy, intuitive, and more flexible however, this code could
+    # be useful for a further design change: model accessors can
+    # automatically produce a multiindex grouped ml output... diffing
+    # stratagy could help?
+    
+    # def get(self):
+    #     original = self._cols_before_update
+    #     updated = self.df.columns.values
+    #     is_not_original_content = np.vectorize(lambda x: x not in original)
+    #     comp_cols_idx = is_not_original_content(updated)
+    #     comp_cols = updated[comp_cols_idx]
+    #     return comp_cols
 
-    def make_and_get(self):
+    def get(self):
         comp_dict = self.make()
-        self.df = self.df.assign(**comp_dict)
-        comp_cols = self.get()
-        return comp_cols
+        self.compdf = self.compdf.assign(**comp_dict)
+        #comp_cols = self.get()
+        return self.compdf
