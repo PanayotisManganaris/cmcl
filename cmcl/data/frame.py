@@ -64,7 +64,7 @@ class FeatureAccessor():
         return self._df
         
     def ohe(self, regen=False):
-        if self._ohe_cols is None or regen:
+        if self._ohedf is None or regen:
             feature = DummyTable(self._df)
             self._ohedf = feature.make()
         return self._ohedf
@@ -76,7 +76,7 @@ class FeatureAccessor():
         """
         if self._compdf is None or regen:
             feature = CompositionTable(self._df)
-            self._compdf = feature.make()
+            self._compdf = feature.get()
         return self._compdf
     
     def mtmr(self):

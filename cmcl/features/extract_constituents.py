@@ -166,18 +166,17 @@ class CompositionTable():
         self.compdf.index = df.index
         self._validate(df)
 
-    @staticmethod
-    def _validate(df):
+    def _validate(self, df):
         """
-        make sure Formula "column" exists and Formula strings are of
+        make sure Formula "column" exists and (wishlist) Formula strings are of
         the expected form
         """
-        if "Formula" or "formula" in df:
+        if "Formula" in df or "formula" in df:
             try:
                 self.Formula = df.Formula
             except AttributeError:
                 self.Formula = df.formula
-        elif "Formula" or "formula" in df.index.names:
+        elif "Formula" in df.index.names or "formula" in df.index.names:
             try:
                 self.Formula = df.index.get_level_values("Formula").to_series()
             except AttributeError:
@@ -196,6 +195,12 @@ class CompositionTable():
             comp_dict[k] = list(v.values())
         return comp_dict
 
+    def get(self):
+        comp_dict = self.make()
+        self.compdf = self.compdf.assign(**comp_dict)
+        #comp_cols = self.get()
+        return self.compdf
+
     # design change: featurizers simply return the feature dataframe
     # with a correct index joining tables is left to the user -- which
     # is easy, intuitive, and more flexible however, this code could
@@ -211,8 +216,3 @@ class CompositionTable():
     #     comp_cols = updated[comp_cols_idx]
     #     return comp_cols
 
-    def get(self):
-        comp_dict = self.make()
-        self.compdf = self.compdf.assign(**comp_dict)
-        #comp_cols = self.get()
-        return self.compdf
