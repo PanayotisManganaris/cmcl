@@ -121,7 +121,7 @@ class PerovskiteAccessor():
     def base(self):
         return self._df
         
-    def _mixreader(self, row):
+    def _transcribe_mix(self, row):
       mixstring = " & "
       stringlist=[]
       if row[0] > 1:
@@ -143,21 +143,22 @@ class PerovskiteAccessor():
       mixstring = mixstring.join(stringlist)
       return mixstring
 
-    def mix(self):
+    def mix(self, segments=None):
         """
         provides default access to ColumnGrouper. categorizes
         perovskite's by site mixing when applied to a composition
         table.
         """
-        segments = {"A":["MA", "FA", "Cs", "Rb", "K"],
-                    "B":["Pb", "Sn", "Ge", "Ba", "Sr", "Ca", "Be", "Mg", "Si", "V", "Cr", "Mn", "Fe", "Ni", "Zn", "Pd", "Cd", "Hg"],
-                    "X":["I", "Br", "Cl"]}
-        extender = LabelGrouper(self._df, **segments)
-        mixlog = extender.sum_groups()
-        mixing = mixlog.apply(lambda row: self._mixreader(row), axis=1)
+        if not segments:
+            segments = {"A":["MA", "FA", "Cs", "Rb", "K"],
+                        "B":["Pb", "Sn", "Ge", "Ba", "Sr", "Ca", "Be", "Mg", "Si", "V", "Cr", "Mn", "Fe", "Ni", "Zn", "Pd", "Cd", "Hg"],
+                        "X":["I", "Br", "Cl"]}
+        categorizer = LabelGrouper(self._df, **segments)
+        mixlog = categorizer.sum_groups()
+        mixing = mixlog.apply(lambda row: self._transcribe_mix(row), axis=1)
         mixing.name="mixing"
         return mixing
-                
+    
 @pd.api.extensions.register_dataframe_accessor("tf")
 class TransformAccessor():
     """
