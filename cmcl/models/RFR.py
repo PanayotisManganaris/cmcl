@@ -73,24 +73,27 @@ class RFR():
             self._parametrize()
 
     def _parametrize(self):
-        #use this to do optimization/scalability studies
-        self.r.set_params(**{'bootstrap': True,
-                             'ccp_alpha': 0.0,
-                             'criterion': 'squared_error',
-                             'max_depth': None,
-                             'max_features': 'sqrt',
-                             'max_leaf_nodes': None,
-                             'max_samples': None,
-                             'min_impurity_decrease': 0.0,
-                             'min_samples_leaf': 1,
-                             'min_samples_split': 2,
-                             'min_weight_fraction_leaf': 0.0,
-                             'n_estimators': 100,
-                             'n_jobs': None,
-                             'oob_score': False,
-                             'random_state': None,
-                             'verbose': 0,
-                             'warm_start': False})
+        """
+        pass or set-default configuration parameters to sklearn random
+        forest regressor
+        """
+        self.r.set_params(**{'bootstrap': getattr(self, bootstrap, True),
+                             'ccp_alpha': getattr(self, ccp_alpha, 0.0),
+                             'criterion': getattr(self, criterion, 'squared_error'),
+                             'max_depth': getattr(self, max_depth, None),
+                             'max_features': getattr(self, max_features, None),
+                             'max_leaf_nodes': getattr(self, max_leaf_nodes, None),
+                             'max_samples': getattr(self, max_samples, None),
+                             'min_impurity_decrease': getattr(self, min_impurity_decrease, 0.0),
+                             'min_samples_leaf': getattr(self, min_samples_leaf, 1),
+                             'min_samples_split': getattr(self, min_samples_split, 2),
+                             'min_weight_fraction_leaf': getattr(self, min_weight_fraction_leaf, 0.0),
+                             'n_estimators': getattr(self, n_estimators, 100),
+                             'n_jobs': getattr(self, n_jobs, None),
+                             'oob_score': getattr(self, oob_score, False),
+                             'random_state': getattr(self, random_states, None),
+                             'verbose': getattr(self, verbose, 0),
+                             'warm_start': getattr(self, warm_start, False)})
                 
     def _train(self):
         if self.Y_train.values.shape[1] == 1:
