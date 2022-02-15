@@ -93,10 +93,10 @@ class LabelGrouper():
          self.segment_count.iloc[:, col] = self._df[idx].notna().sum(axis=1)
 
    def _save_groups(self):
-      for col, segment in enumerate([item[1] for item in self.items]):
-         idx = self._present_index(segment)
-         yield self._df[idx]
-
+      for group, segment in self.items:
+          idx = self._present_index(segment)
+          yield group, self._df[idx]
+         
    def sum_groups(self):
       """
       returns segment_count -- a row-wise count of non-NaN values per group
@@ -106,6 +106,6 @@ class LabelGrouper():
 
    def get_groups(self):
       """
-      returns the groups themselves as a tuple
+      returns the groups themselves as a dictionary of group:dataframe
       """
-      return tuple(self._save_groups())
+      return {g:df for g,df in self._save_groups()}
