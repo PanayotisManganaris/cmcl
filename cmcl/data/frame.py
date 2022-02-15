@@ -98,10 +98,7 @@ class PerovskiteAccessor():
     these summary columns are all intended to work with X.ft.ohe()
     which can one-hot encode any one in a simple oneliner
 
-    X.sm.mix().ft.ohe()
-
-    Human descriptors:
-    mixing_sites = CmclFrame.ft.comp().sm.mix
+    X.ABX.mix().ft.ohe()
 
     continuous metric descretizations
     distribution_table = CmclFrame["metric"].sm.bin(nbins)
