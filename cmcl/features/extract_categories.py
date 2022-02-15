@@ -1,3 +1,7 @@
+import logging
+logfmt = '[%(levelname)s] %(asctime)s - %(message)s'
+logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
+
 import pandas as pd
 import numpy as np
 
@@ -13,20 +17,19 @@ class DummyTable():
         id cols with lists inside or dicts inside
         warn
         """
-        def conditional_casefold(entry):
-            if isinstance(entry, str):
-                return entry.casefold()
-            else:
-                return entry
-        validx = ["Formula".casefold() in ref for ref in map(conditional_casefold, self.df.columns)]
-
         for nncol_name in df.select_dtypes(include=["object"]).columns:
-            el_not_str = df[nncol_name].apply(lambda x: not isinstance(x, str))
-            log = f"""These records contain non-numeric, non-string dtypes:
-            {df.loc[el_not_str, nncol_name].index}"""
+            el_not_str = mannodi_df["PBE_bgType"].apply(lambda x: not (x is None or isinstance(x, (str, np.NaN, pd.NA))))
+            log = f"""Records contain non-numeric, non-string, non-NoneType, dtypes
+            {df.loc[el_not_str, nncol_name]}"""
             if el_not_str.any():
                 logging.critical(log)
                 raise ValueError("data is not suitable for one-hot encoding. see log")
+
+    def _conditional_casefold(entry):
+        if isinstance(entry, str):
+            return entry.casefold()
+        else:
+            return entry
 
     def make(self):
         """
@@ -35,8 +38,10 @@ class DummyTable():
         
         Convenience for using catagorical variables in models.
 
-        wishlist: develop logic for prefixing dummy cols
+        wishlist: control prefixing dummy cols
         """
+        normidx = list(map(self._conditional_casefold, df.columns))
+        validx = ["Formula".casefold() not in label for label in normidx]
         #make in one swoop
         self.df = pd.get_dummies(self.df.loc[:, validx])
         #get indices
