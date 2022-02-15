@@ -103,16 +103,16 @@ class RFR():
         Y_train_pred = self.r.predict(self.X_train)
         yrp_i = self.X_train.index #whatever the original split order, the input decides
         yrp_c = self.Y_train.columns
-        yrp = pd.DataFrame(list(Y_train_pred), index = yrp_i, columns = yrp_c)
-        yrp = yrp.add_prefix("p_")
+        yrp = pd.DataFrame(Y_train_pred, index = yrp_i, columns = yrp_c)
+        yrp = yrp.add_suffix("_p")
         return yrp
 
     def _test(self):
         Y_test_pred = self.r.predict(self.X_test)
         ysp_i = self.X_test.index
         ysp_c = self.Y_test.columns
-        ysp = pd.DataFrame(list(Y_test_pred), index = ysp_i, columns = ysp_c)
-        ysp = ysp.add_prefix("p_")
+        ysp = pd.DataFrame(Y_test_pred, index = ysp_i, columns = ysp_c)
+        ysp = ysp.add_suffix("_p")
         return ysp
     
     def train_test_return(self):
