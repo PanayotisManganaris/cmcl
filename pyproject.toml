@@ -5,7 +5,7 @@ description = "aggregate chemical formula and measurments, train models, optimiz
 authors = ["Panayotis Manganaris <panos.manganaris@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.7,<3.11"
 sklearn = "^0.0"
 keras = "^2.8.0"
 pandas = "^1.4.0"
@@ -14,6 +14,8 @@ matplotlib = "^3.5.1"
 click = "^8.0.3"
 Unidecode = "^1.3.2"
 mplcursors = "^0.5.1"
+megnet = "^1.3.0"
+tensorflow = "^2.8.0"
 
 [tool.poetry.dev-dependencies]
 jupyter = "^1.0.0"
