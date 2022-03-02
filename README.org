@@ -57,8 +57,9 @@ table of chemical properties
 (WIP)
 Alternatively, the compositions can be processed into further feature
 sets using a variety of libraries
-- pymatgen's implementation of Dscribe [[cite:&himanen-2020-dscrib]]
-- MEGnet
+- Matminer
+- DScribe [[cite:&himanen-2020-dscrib]]
+- MEGnet [[cite:&chen-2019-graph-networ]]
 *** TODO Visualization
 Model visualization is dependent on matplotlib. A custom pandas
 plotting backend called spyglass -- also an early work in progress --
@@ -131,15 +132,29 @@ mannodi and kern style GA
 ** TODO model improvement guide
 ideally, cmcl will in some limited way enable researchers to "master
 their dataset" relatively painlessly
-* Associated Dataset
-The dataset was formerly integral to the project.
+* TODO Data Aggregation
+** TODO pymatgen assimilation library
+For collecting VASP results
+** TODO NOMAD?
+use nomad for metadata generation and more?
+* TODO Data Sharing
+** TODO Local DB
+cmcl will create a local database upon a call to a dataframe's cmclwrite method.
 
-The new architecture makes use of an external database.
-this can be found on the group box folder
+this database can then be freely populated with dataframes
+** TODO "Collaboration Remote"
+cmcl also provides a "push" method that allows users to choose a remote host
+
+and share local tables with it. cmcl is of the philosophy that ALL data is good data
+
+so, "pull" is implicit. the database only ever grows. nothing is ever overwritten.
 
 #+begin_example
 $ rclone sync purduebox:/Mannodi_group_research_material/Perovskite\ Dataset/perovskites.db
 #+end_example
+** TODO "Publish Remote"
+cmcl implements OPTIMATE to provide an easy universal query and, where
+possible, publish option for 
 * External Datasets 
 compare model to experimental results for validation
 1. [[cite:&almora-2020-devic-perfor]] meta-analysis of Perovskite PV devices.
