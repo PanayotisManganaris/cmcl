@@ -9,7 +9,7 @@ from cmcl.features.extract_constituents import CompositionTable
 
 #access transformers
 from cmcl.features.extract_categories import DummyTable
-from cmcl.features.extract_categories import LabelGrouper
+from cmcl.data.index import ColumnGrouper
 
 from cmcl.transforms.PCA import PCA
 
@@ -41,7 +41,7 @@ class FeatureAccessor():
 
     def __init__(self, df):
         self._validate(df)
-        #getting original
+        #working original
         self._df = df
         #storing dummies 
         self._ohedf = None
@@ -87,29 +87,35 @@ class FeatureAccessor():
         """get array of MEGnet properties"""
         print("megnet Not Implemented")
 
-
-@pd.api.extensions.register_dataframe_accessor("ABX")
-class PerovskiteAccessor():
+@pd.api.extensions.register_dataframe_accessor("collect")
+class CollectionAccessor():
     """
-    Conveniently and robustly define and retrieve categorical summaries of data
+    convenience for imposing user-defined collections on columns
 
-    when table does not exist, it will be created.
+    collections are returned in the form of a pandas MultiIndex on the
+    column labels
 
-    these summary columns are all intended to work with X.ft.ohe()
-    which can one-hot encode any one in a simple oneliner
+    define your own groups as a dictionary of form:
+    segment_dict={"group1": ["col1", "coln"], "group2": ["col2"]}
 
-    X.ABX.mix().ft.ohe()
+    one column can be placed in multiple groups, but the MultiIndex
+    will be nested
 
-    continuous metric descretizations
-    distribution_table = CmclFrame["metric"].sm.bin(nbins)
+    then: CmclFrame.collect.by(segment_dict)
+
+    presets include:
+    - pervoskite site grouping (collect.abx)
+    
+    data categorizers are MultiIndex aware and will return categories
+    for every grouping level
+
+    Some Featurizers are MultiIndex aware and support returning
+    features aggregated by groupings
     """
     def __init__(self, df):
         self._validate(df)
-        #getting original
+        #working original
         self._df = df
-        #getting mix categories
-        self._mix_mod_df = None
-        self._mix_cols = None
         
     @staticmethod
     def _validate(df):
@@ -117,77 +123,56 @@ class PerovskiteAccessor():
         verify df contains at least one series of measurements
         """
         pass
-
-    def base(self):
-        return self._df
         
-    def _transcribe_mix(self, row):
-        mixstring = " & "
-        stringlist=[]
-        if row[0] > 1:
-            stringlist.append("A")
-        elif row[0] < 1:
-            stringlist.append("error")
-        if row[1] > 1:
-            stringlist.append("B")
-        elif row[1] < 1:
-            stringlist.append("error")
-        if row[2] > 1:
-            stringlist.append("X")
-        elif row[2] < 1:
-            stringlist.append("error")
-        if stringlist:
-            stringlist[-1] = stringlist[-1] + "-site"
-        if not stringlist:
-            stringlist.append("Pure")
-        mixstring = mixstring.join(stringlist)
-        return mixstring
+    def by(self, segments):
+        collector = ColumnGrouper(self._df, segments)        
+        return collector.get_groups()
 
-    def _check_groups(self, colgroups, segment_sums):
-        for group, groupdf in colgroups.items():
-            vallog = groupdf.sum(axis=1).apply(lambda rowsum: "pass" if rowsum in segment_sums else "check")
-            vallog.name = group
-            yield vallog
+    def abx(self):
+        """
+        default ColumnGrouper. groups Perovskite composition tables by
+        constituent site.
+        """
+        segments = {"A":["MA", "FA", "Cs", "Rb", "K"],
+                    "B":["Pb", "Sn", "Ge", "Ba", "Sr", "Ca", "Be", "Mg", "Si", "V", "Cr", "Mn", "Fe", "Ni", "Zn", "Pd", "Cd", "Hg"],
+                    "X":["I", "Br", "Cl"]}
+        return self.by(segments)
 
-    def mix(self, segments=None, segment_sums=[]):
-        """
-        provides default access to ColumnGrouper. categorizes
-        perovskite's by site mixing when applied to a composition
-        table, also logs the validity of each individual group
-        according to the summation of it's columns belonging to a list
-        of permissible site fractions.
-        """
-        if not segments:
-            segments = {"A":["MA", "FA", "Cs", "Rb", "K"],
-                        "B":["Pb", "Sn", "Ge", "Ba", "Sr", "Ca", "Be", "Mg", "Si", "V", "Cr", "Mn", "Fe", "Ni", "Zn", "Pd", "Cd", "Hg"],
-                        "X":["I", "Br", "Cl"]}
-        if not segment_sums:
-            segment_sums = [1, 3, 8, 24]
-        categorizer = LabelGrouper(self._df, **segments)
-        mixlog = categorizer.sum_groups()
-        colgroups = categorizer.get_groups()
-        #produce categorical variable
-        mixing = mixlog.apply(lambda row: self._transcribe_mix(row), axis=1)
-        mixing.name="mixing"
-        #check groupsum
-        vallog = list(self._check_groups(colgroups, segment_sums))
-        retlist = [mixing]
-        for series in vallog:
-            retlist.append(series)
-        return pd.DataFrame(retlist).T
-    
+@pd.api.extensions.register_dataframe_accessor("cat")
+class CategoryAccessor():
+    """
+    validate by summation. Check to see each row sums to a certain quantity
+
+    aggregations are MultiIndex Aware
+    """
+    if not segment_sums:
+        segment_sums = [1, 3, 8, 24]
+    mixlog = categorizer.sum_groups()
+    colgroups = categorizer.get_groups()
+    #produce categorical variable
+    mixing = mixlog.apply(lambda row: self._transcribe_mix(row), axis=1)
+    mixing.name="mixing"
+    #check groupsum
+    vallog = list(self._check_groups(colgroups, segment_sums))
+    retlist = [mixing]
+    for series in vallog:
+        retlist.append(series)
+    return pd.DataFrame(retlist).T
+    """
+    also logs the validity of each individual group according to the
+    summation of it's columns belonging to a list of permissible site
+    fractions.
+    """
     
 @pd.api.extensions.register_dataframe_accessor("tf")
 class TransformAccessor():
     """
-    Conveniently and robustly define and retrieve transforms of tables
+    Conveniently define and retrieve transforms of tables
 
     when transform does not exist, it will be created.
-
-    these transforms can be applied to any X.ft.function()
-    with a simple one-liner
     
-    X.ft.comp().tf.pca()
+    example:
+    X.tf.pca()
 
     provides signal analysis transforms
     FFT, Hilbert, etc
