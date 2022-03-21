@@ -49,14 +49,9 @@ Tabular records of chemical formula and associated observations need
 only be loaded as a dataframe before cmcl's formula parser can be used
 to convert formula strings into equivalent numerical descriptors.
 
-(WIP)
-Furthermore, this composition data -- itself a dataframe -- can be
-reprocessed by applying groupwise aggregations based on a separate
-table of chemical properties
-
-(WIP)
-Alternatively, the compositions can be processed into further feature
-sets using a variety of libraries
+These compositions -- themselves a dataframe -- can then be further
+processed into other feature sets using a variety of libraries
+- mendeleev [[cite:&mendeleev2014]]
 - Matminer
 - DScribe [[cite:&himanen-2020-dscrib]]
 - MEGnet [[cite:&chen-2019-graph-networ]]
@@ -102,7 +97,7 @@ For steadfast conda users:
 
 proceed to run your python process/jupyter kernel of choice and enjoy.
 * Contribution
-Thank you. Note: I am at best an amateur developer, but I try.
+Yes Please.
 * Usage Examples
 ** Quick Scikit-Learn Random Forest Regression
 #+begin_src jupyter-python :session "py" :exports "both" :results "raw drawer"
@@ -122,8 +117,8 @@ So, the predictions may be merged/concatenated with the original data.
 a convenient pandas centric api for quantifying model performance via
 familiar sci-kit learn methods is being designed
 ** learning curve
-test efficacy of a model for multiple training set sizes while retaining awarness of record indices
-
+test efficacy of a model for multiple training set sizes while
+retaining awareness of record indices
 ** TODO hyperparameter optimization
 *** grid search
 *** beyesian search
@@ -154,7 +149,7 @@ $ rclone sync purduebox:/Mannodi_group_research_material/Perovskite\ Dataset/per
 #+end_example
 ** TODO "Publish Remote"
 cmcl implements OPTIMATE to provide an easy universal query and, where
-possible, publish option for 
+possible, publish option for sharing your data with global platforms
 * External Datasets 
 compare model to experimental results for validation
 1. [[cite:&almora-2020-devic-perfor]] meta-analysis of Perovskite PV devices.
