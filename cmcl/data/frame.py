@@ -5,16 +5,17 @@ logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logf
 import pandas as pd
 import numpy as np
 #access feature computers
-from cmcl.features.extract_constituents import CompositionTable
+from cmcl.features.extract_constituents import CompositionTable, MGRTable
 
 #access transformers
 from cmcl.features.extract_categories import DummyTable
-from cmcl.data.index import ColumnGrouper
-
 from cmcl.transforms.PCA import PCA
 
 #access models
 from cmcl.models.RFR import RFR
+
+#access collection tools
+from cmcl.data.index import ColumnGrouper
 
 # feature accessors should saveable in some way for future use/reporting
 
@@ -24,18 +25,17 @@ from cmcl.models.RFR import RFR
 @pd.api.extensions.register_dataframe_accessor("ft")
 class FeatureAccessor():
     """
-    Conveniently and robustly define and retrieve feature tables
-
+    Conveniently retrieve feature tables.
     when table does not exist, it will be created.
 
     basic chemical descriptors:
     composition_tbl = CmclFrame.ft.comp()
-    prop_tbl = CmclFrame.ft.prop()
+    prop_tbl = CmclFrame.ft.mrg()
     
     pymatgen descriptors:
     matminer_tbl = CmclFrame.ft.mtmr()
 
-    MEGnet descriptors:
+    MEGnet elemental embeddings:
     meg_tbl = CmclFrame.meg()
     """
 
@@ -43,23 +43,19 @@ class FeatureAccessor():
         self._validate(df)
         #working original
         self._df = df
-        #storing dummies 
         self._ohedf = None
-        #storing physical comp features
         self._compdf = None
+        self._mgrdf = None
         
     @staticmethod
     def _validate(df):
         """
         verify df contains
-        a series of Formula
+        a series of Formula (in index or body)
         at least one series of measurements
         """
-        # only general checks should be done here
         pass
-        # if df.columns.values.shape[0] < 2:
-        #     #warn user no ml can be done on current data
-
+        
     def base(self):
         return self._df
         
@@ -79,12 +75,24 @@ class FeatureAccessor():
             self._compdf = feature.get()
         return self._compdf
     
+    def mrg(self):
+        """
+        apply to a composition table.
+        Get array of elemental properties currently being considered
+        by Mannodi Research Group for every compound present as
+        non-NaN/nonzero entry in composition table.
+        """
+        if self._compdf is None or regen:
+            feature = MRGTable(self._df)
+            self._mrgdf = feature.get()
+        return self._mrgdf
+
     def mtmr(self):
-        """get array of dscribe inorganic crystal properties"""
+        """as above, get array of dscribe inorganic crystal properties"""
         print("matminer Not Implemented")
 
     def meg(self):
-        """get array of MEGnet properties"""
+        """as above, get array of MEGnet elemental embeddings"""
         print("megnet Not Implemented")
 
 @pd.api.extensions.register_dataframe_accessor("collect")
@@ -124,9 +132,16 @@ class CollectionAccessor():
         """
         pass
         
-    def by(self, segments):
-        collector = ColumnGrouper(self._df, segments)        
-        return collector.get_groups()
+    def by(self, segments, name_tuple=None, dontdrop=True):
+        """
+        set dontdrop to False to exclude any column not specified in
+        segments from the new columns index
+
+        optionally pass a two-tuple of names for 1. the groups and
+        2. the members
+        """
+        collector = ColumnGrouper(self._df, segments, dontdrop)
+        return collector.get_groups(name_tuple)
 
     def abx(self):
         """
@@ -136,34 +151,8 @@ class CollectionAccessor():
         segments = {"A":["MA", "FA", "Cs", "Rb", "K"],
                     "B":["Pb", "Sn", "Ge", "Ba", "Sr", "Ca", "Be", "Mg", "Si", "V", "Cr", "Mn", "Fe", "Ni", "Zn", "Pd", "Cd", "Hg"],
                     "X":["I", "Br", "Cl"]}
-        return self.by(segments)
+        return self.by(segments, ("site","element"))
 
-@pd.api.extensions.register_dataframe_accessor("cat")
-class CategoryAccessor():
-    """
-    validate by summation. Check to see each row sums to a certain quantity
-
-    aggregations are MultiIndex Aware
-    """
-    if not segment_sums:
-        segment_sums = [1, 3, 8, 24]
-    mixlog = categorizer.sum_groups()
-    colgroups = categorizer.get_groups()
-    #produce categorical variable
-    mixing = mixlog.apply(lambda row: self._transcribe_mix(row), axis=1)
-    mixing.name="mixing"
-    #check groupsum
-    vallog = list(self._check_groups(colgroups, segment_sums))
-    retlist = [mixing]
-    for series in vallog:
-        retlist.append(series)
-    return pd.DataFrame(retlist).T
-    """
-    also logs the validity of each individual group according to the
-    summation of it's columns belonging to a list of permissible site
-    fractions.
-    """
-    
 @pd.api.extensions.register_dataframe_accessor("tf")
 class TransformAccessor():
     """
