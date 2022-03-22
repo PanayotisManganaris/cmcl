@@ -200,19 +200,3 @@ class CompositionTable():
         self.compdf = self.compdf.assign(**comp_dict)
         #comp_cols = self.get()
         return self.compdf
-
-    # design change: featurizers simply return the feature dataframe
-    # with a correct index joining tables is left to the user -- which
-    # is easy, intuitive, and more flexible however, this code could
-    # be useful for a further design change: model accessors can
-    # automatically produce a multiindex grouped ml output... diffing
-    # stratagy could help?
-    
-    # def get(self):
-    #     original = self._cols_before_update
-    #     updated = self.df.columns.values
-    #     is_not_original_content = np.vectorize(lambda x: x not in original)
-    #     comp_cols_idx = is_not_original_content(updated)
-    #     comp_cols = updated[comp_cols_idx]
-    #     return comp_cols
-
