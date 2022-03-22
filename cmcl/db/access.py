@@ -1,4 +1,4 @@
-"""this file entirely copied from Immentel's Mendeleev library"""
+"""this file based heavily on Immentel's Mendeleev library"""
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
