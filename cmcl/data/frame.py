@@ -5,7 +5,7 @@ logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logf
 import pandas as pd
 import numpy as np
 #access feature computers
-from cmcl.features.extract_constituents import CompositionTable, MGRTable
+from cmcl.features.extract_constituents import CompositionTable
 
 #access transformers
 from cmcl.features.extract_categories import DummyTable
@@ -14,7 +14,7 @@ from cmcl.transforms.PCA import PCA
 #access models
 from cmcl.models.RFR import RFR
 
-#access collection tools
+#metadata handling
 from cmcl.data.index import ColumnGrouper
 
 # feature accessors should saveable in some way for future use/reporting
@@ -82,10 +82,7 @@ class FeatureAccessor():
         by Mannodi Research Group for every compound present as
         non-NaN/nonzero entry in composition table.
         """
-        if self._compdf is None or regen:
-            feature = MRGTable(self._df)
-            self._mrgdf = feature.get()
-        return self._mrgdf
+        pass
 
     def mtmr(self):
         """as above, get array of dscribe inorganic crystal properties"""
@@ -156,21 +153,21 @@ class CollectionAccessor():
 @pd.api.extensions.register_dataframe_accessor("tf")
 class TransformAccessor():
     """
-    Conveniently define and retrieve transforms of tables
-
-    when transform does not exist, it will be created.
+    Define and retrieve transforms of tables. When transform does not
+    exist, it will be created.
     
+    Supports generic Scikit-Learn contextual transforms using the
+    df.tf.pipe() method. This simply inserts a thin wrapper between
+    the df.pipe() method and functions that act on Dataframes,
+    returning multidimensional arrays (like Scikit-Learn
+    Transformers).
+
     example:
-    X.tf.pca()
+    X = X.tf.pipe(StandardScaler().fit_transform)
+    Xpca = X.tf.pca()
 
-    provides signal analysis transforms
-    FFT, Hilbert, etc
-
-    decompositions
-    PCA, etc
-
-    kernel transforms
-    TSNE, UMAP, SISSO, etc
+    In this way, transforms stay fully contextualized by the dataframe
+    indices
     """
     def __init__(self, df):
         self._validate(df)

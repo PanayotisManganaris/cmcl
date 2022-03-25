@@ -56,3 +56,4 @@ class ColumnGrouper():
         self.df = self.df.reindex(mi_ordered.get_level_values(1), axis=1, copy=False)
         self.df.columns=mi_ordered
         return self.df
+
