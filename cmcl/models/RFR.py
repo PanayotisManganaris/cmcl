@@ -125,26 +125,4 @@ class RFR():
         self.X_stack = pd.concat([X_tr, X_ts], axis = 0)
         self.Y_stack = pd.concat([Y_trp, Y_tsp], axis = 0)
         if not self._ret_r:
-            self.r = None # little cludgy?
-
-#  ##  Define Random Forest Hyperparameter Space  ##
-#  #param_grid = {
-#  #"n_estimators": [100, 200],
-#  #"max_features": [10, 30, m],
-#  #"min_samples_leaf": [10, 20],
-#  #"max_depth": [10, 20, 40],
-#  #"min_samples_split": [2, 5, 10]
-#  #}
-#  param_grid = { "n_estimators": [100]}
-#  
-#  ###  Train Model For Lattice Constant  ###
-#  rfr_prop = GridSearchCV(RandomForestRegressor(), param_grid=param_grid, cv=5)
-#  rfr_comp = GridSearchCV(RandomForestRegressor(), param_grid=param_grid, cv=5)
-#
-#  ##  Calculate RMSE Values  ##
-#  
-#  Y_test_mse = sklearn.metrics.mean_squared_error(Y_pbe_test, Pred_pbe_test)
-#  Y_train_mse = sklearn.metrics.mean_squared_error(Y_pbe_train, Pred_pbe_train)
-#  print('rmse_test_matrix = ', np.sqrt(Y_test_mse))
-#  print('rmse_train_matrix = ', np.sqrt(Y_train_mse))
-#  print('      ')
+            self.r = None
