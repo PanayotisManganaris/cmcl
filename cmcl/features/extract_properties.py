@@ -1,18 +1,6 @@
 import pandas as pd
 
 from mendeleev import element
-from cmcl.data.handlers import constituents
-
-class LookupTable():
-    """
-    Base class for tables populated from Databases
-
-    handles 
-    """
-    def lookup(el_name):
-        el = element(el_name)
-        el.ion_rad
-        return 
 
 class MRGTable():
     """
@@ -29,13 +17,19 @@ class MRGTable():
     En
     at_num
     period
+
+    #not
     group
     val  
     ox_st
 
-    For every molecule:
-    stopgap: all but group, val, ox_st
+    in future cmcl will constitute only intermediary database which
+    expands molecule name into constituent elements. From there, only
+    mendeleev databases will be used.
 
-    
+    Legacy cmcl properties lookup will be preserved until I can insist
+    on cutting the fat.
     """
     
+    def __init__(self, mdf):
+        pass
