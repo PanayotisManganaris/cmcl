@@ -1,26 +1,33 @@
 class Categories():
     """
-    tools for simplifying the generation of categorical columns
+    tools for simplifying the generation of categorical columns based
+    on groupbys. 
     
-    ideal for producing plots via groupby
+    ideal for producing plot labels.
     """
     @staticmethod
-    def mix(row, columns, default=None):
+    def logif(df, condition, default=None):
         """
-        produce a column of categorical string labels based on the
-        column names of a dataframe
+        produce a column of categorical strings based on the numerical
+        contents of a dataframe, its column names, and some condition
+        described as a function returning True. Optionally provide a
+        default label for records not meeting condition in any column.
 
-        intended for use with the result of ColumnGrouper aggregations
+        example:
+        df.pipe(Categories.logif, condition=lambda x: x>1, default="pure")
         """
-        catstring = " & "
-        stringlist=[]
-        for entry, label in zip(row, columns):
-            if entry > 1:
-                stringlist.append(label)
-        if not stringlist:
-            stringlist.append(str(default))
-        catstring = catstring.join(stringlist)
-        return catstring
+        def _logif(row):
+            catstring = " & "
+            stringlist=[]
+            for entry, label in zip(row, df.columns):
+                if condition(entry):
+                    stringlist.append(label)
+            if not stringlist:
+                stringlist.append(str(default))
+            catstring = catstring.join(stringlist)
+            return catstring
+        catseries = df.apply(_logif, axis=1)
+        return catseries
 
 class Easel():
     """
