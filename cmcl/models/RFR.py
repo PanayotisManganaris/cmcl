@@ -5,22 +5,11 @@ import logging
 logfmt = '[%(levelname)s] %(asctime)s - %(message)s'
 logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
 
-# data handling
-from sklearn.preprocessing import StandardScaler
-
-# ML Model Specific Packages
-from sklearn.ensemble import RandomForestRegressor
+import pandas as pd
 
 # model init 
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
-
-# model optimization
-from sklearn.model_selection import GridSearchCV
-
-#data tools
-import numpy as np
-import pandas as pd
-import sqlite3
 
 class RFR():
     """
