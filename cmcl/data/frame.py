@@ -4,20 +4,20 @@ logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logf
 
 import pandas as pd
 import numpy as np
-#metadata handling
-from cmcl.data.index import ColumnGrouper, ColumnHandler
 
 #feature computers
 from cmcl.features.extract_constituents import CompositionTable
 
-#access models
-from cmcl.models.RFR import RFR
+#scikit accessor implementation
+import json
+import re
+from sklearn.compose import make_column_transformer
+from sklearn.compose import make_column_selector
 
-
-# feature accessors should saveable in some way for future use/reporting
-
-# model accessors perhaps can be saved, but are often not.
-# expensive models should be saved, though...
+#metadata handling
+from cmcl.data.index import ColumnGrouper
+#testing
+from cmcl.compatsk._FrameTransformer import FrameTransformer
 
 @pd.api.extensions.register_dataframe_accessor("ft")
 class FeatureAccessor():
@@ -40,7 +40,6 @@ class FeatureAccessor():
         self._validate(df)
         #working original
         self._df = df
-        self._ohedf = None
         self._compdf = None
         self._mgrdf = None
         
@@ -83,17 +82,16 @@ class FeatureAccessor():
         """as above, get array of MEGnet elemental embeddings"""
         print("megnet Not Implemented")
 
-@pd.api.extensions.register_dataframe_accessor("tf")
-class TransformAccessor():
+@pd.api.extensions.register_dataframe_accessor("sk")
+class SciKitAccessor():
     """
     Define and retrieve transforms of tables. When transform does not
     exist, it will be created.
     
-    Supports generic Scikit-Learn contextual transforms using the
-    df.tf.pipe() method. This simply inserts a thin wrapper between
-    the df.pipe() method and functions that act on Dataframes,
-    returning multidimensional arrays (like Scikit-Learn
-    Transformers).
+    - df.sk.transform() method supports generic Scikit-Learn compliant
+      contextual transforms to a dataframe
+    
+    - df.sk.model() method supports applying SciKit-Learn compliant estimators
 
     example:
     X = X.tf.pipe(StandardScaler().fit_transform)
@@ -103,37 +101,89 @@ class TransformAccessor():
     indices
     """
     def __init__(self, df):
-        self._validate(df)
-        #getting original
-        self._df = df
-        #getting mix categories
-        self._PCA_mod_df = None
-        self._PCA_cols = None
-        
+        """
+        sklearn transformers are very careful about the types they work on.
+        object columns should definitely contain strings.
+        numeric columns should definitely contain numbers or NaN
+
+        DataFrame column labels absolutely must be strings
+        Column names are preserved for restructuring
+        """
+        self._df = pd.concat(
+            [df.select_dtypes(exclude=object).apply(pd.to_numeric, errors="coerce"),
+             df.select_dtypes(include=object).applymap(lambda x: str(x))],
+             axis=1
+        )
+        self._col_names = df.columns.names
+        self._df = self._serialize_columns(self._df)
+    
     @staticmethod
-    def _validate(df):
+    def _serialize_columns(df: pd.DataFrame):
+        """ensure pandas columns are always a series of strings, even if MultiIndexed"""
+        new_col_labels = []
+        for label in df.columns:
+            new_col_labels.append(json.dumps(label))
+        df.columns=new_col_labels
+        return df
+
+    @staticmethod
+    def _gen_transform_tuple(num_transformer=None, obj_transformer=None):
+        """generate a 1or2 tuple of 2-tuples"""
+        if num_transformer and obj_transformer:        
+            ct_list = [(num_transformer,
+                        make_column_selector(dtype_include=np.number)),
+                       (obj_transformer,
+                        make_column_selector(dtype_include=object))]
+        elif num_transformer:
+            ct_list = [(num_transformer,
+                        make_column_selector(dtype_include=np.number))]
+        elif obj_transformer:
+            ct_list = [(obj_transformer,
+                        make_column_selector(dtype_include=object))]
+        else:
+            raise ValueError("Specify at least one compliant transformer")
+        return ct_list
+
+    @staticmethod
+    def _deserialize_columns(df: pd.DataFrame):
         """
-        verify df contains numerical data of the float dtype
+        reconstruct tuple from earlier json.dumps prefixing
+        the highest level label names as needed
         """
-        pass
+        def prefix_last_label(prefix_label):
+            if prefix_label[0] == "[":
+                return prefix_label
+            else:
+                ll = re.split("__", prefix_label)
+                sll = list(re.split(",", ll[-1]))
+                lll = sll[-1]
+                lll = lll.insert(1, ll[:-1]+"__")
+                last = "".join(lll)
+                sll[-1] = last
+                return "".join(sll)
+        final_col_labels = []
+        for dump_label in df.columns:
+            ready_label = prefix_last_label(dump_label)
+            final_col_labels.append(tuple(json.loads(ready_label)))
+        df.columns = pd.MultiIndex.from_tuples(final_col_labels)
+        return df
 
-    def base(self):
-        return self._df
+    def transform(self, num_transformer=None, obj_transformer=None):
+        """
+        Pass transformers to apply to numeric (arg1) and non numeric
+        (arg2) columns of DataFrame (optionally pass FeatureUnions)
         
-    def _make_pca(self):
-        extender = PCATable(self._df)
-        self._pca_cols = extender.make_and_get()
-        self._pca_mod_df = extender.df
-
-    def _get_pca(self):
-        return self._pca_mod_df[self._pca_cols]
-        
-    def pca(self):
-        #wishlist: make the score matrix recoverable for biplotting
-        if self._pca_cols is None:
-            self._make_pca()
-        return self._get_pca()
-
+        example: df.sk.transform(make_union(StandardScaler(), MinMaxScaler()), OneHotEncoder())
+        """
+        ct = make_column_transformer(*self._gen_transform_tuple(num_transformer,
+                                                                obj_transformer))
+        # it'd be nice to shorten the generated names here
+        transformer = FrameTransformer(ct.transformers)
+        df = transformer.fit_transform(self._df)
+        df = self._deserialize_columns(df)
+        df.columns.names = self._col_names
+        return df
+    
 @pd.api.extensions.register_dataframe_accessor("model")
 class ModelAccessor():
     """
