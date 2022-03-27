@@ -1,4 +1,4 @@
-"""PandasColumnTransformer Source originally by Everest Law https://github.com/openerror"""
+"""PandasColumnTransformer source originally by Everest Law https://github.com/openerror"""
 from itertools import chain
 from typing import *
 
@@ -26,7 +26,7 @@ class FrameTransformer(BaseEstimator, TransformerMixin):
         in each tuple, "name" can be anything, but any choice of ["remainder",
         "default", "rem", "def", "drop", "pass", "exclude"] indicates that the
         columns specified in that section of the transformer pipeline should be
-        treated by the ColumnTransformer's Transform-specific remainder protocol
+        treated by the ColumnTransformer's Transform-specific .remainder protocol
         """
         self.col_transformer = ColumnTransformer(transformers, **kwargs)
         self.transformed_col_names: List[str] = []
@@ -41,9 +41,7 @@ class FrameTransformer(BaseEstimator, TransformerMixin):
         """
         for name, transformer, cols in self.col_transformer.transformers_:
             remainder_names = ["remainder", "default", "rem", "def", "drop", "pass", "exclude", "ignore"]
-            if hasattr(transformer, "get_feature_names"):
-                #instead of using generic .get_feature_names method (breaks MultiIndexes),
-                # _get_columns leaves validation of names to the dataframe constructor
+            if hasattr(transformer, "get_feature_names_out"):
                 colnames = transformer.get_feature_names_out(cols)
                 yield colnames
             elif name in remainder_names and self.col_transformer.remainder=="passthrough":
@@ -51,7 +49,7 @@ class FrameTransformer(BaseEstimator, TransformerMixin):
             elif name in remainder_names and self.col_transformer.remainder=="drop":
                 continue
             else:
-                yield cols
+                yield cols        
 
     def fit(self, X: pd.DataFrame, y: Any=None):
         """
