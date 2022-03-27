@@ -59,7 +59,7 @@ class FrameTransformer(BaseEstimator, TransformerMixin):
             y (Index or MultiIndex object, optional): Compliance with fit API. Defaults to None. 
         """
         assert isinstance(X, pd.DataFrame)
-        self.col_transformer = self.col_transformer.fit(X)
+        self.col_transformer = self.col_transformer.fit(X, y)
         self.transformed_col_names = list(chain.from_iterable(self._get_col_names(X)))
         return self
 
@@ -72,7 +72,10 @@ class FrameTransformer(BaseEstimator, TransformerMixin):
             pd.DataFrame: DataFrame transformed by self.col_transformer
         """
         assert isinstance(X, pd.DataFrame)
-        transformed_X = self.col_transformer.transform(X)
+        try: #literally just here to catch manifold.TSNE
+            transformed_X = self.col_transformer.transform(X)
+        except TypeError:
+            transformed_X = self.col_transformer.fit_transform(X)
         if isinstance(transformed_X, np.ndarray):
             return pd.DataFrame(transformed_X, index=X.index, 
             columns=self.transformed_col_names)
@@ -81,4 +84,3 @@ class FrameTransformer(BaseEstimator, TransformerMixin):
                 transformed_X, index=X.index,
                 columns=self.transformed_col_names
             )
-
