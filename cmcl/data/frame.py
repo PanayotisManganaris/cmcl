@@ -13,10 +13,9 @@ import json
 import re
 from sklearn.compose import make_column_transformer
 from sklearn.compose import make_column_selector
-
 #metadata handling
 from cmcl.data.index import ColumnGrouper
-#testing
+#Frame transformer might be movable to cmcl.data.index
 from cmcl.compatsk._FrameTransformer import FrameTransformer
 
 @pd.api.extensions.register_dataframe_accessor("ft")
@@ -183,7 +182,13 @@ class SciKitAccessor():
         df = self._deserialize_columns(df)
         df.columns.names = self._col_names
         return df
-    
+
+    def model(self, ):
+        """
+        
+        """
+        pass
+
 @pd.api.extensions.register_dataframe_accessor("model")
 class ModelAccessor():
     """
