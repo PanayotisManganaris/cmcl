@@ -167,25 +167,61 @@ class SciKitAccessor():
         df.columns = pd.MultiIndex.from_tuples(final_col_labels)
         return df
 
-    def transform(self, num_transformer=None, obj_transformer=None):
-        """
-        Pass transformers to apply to numeric (arg1) and non numeric
-        (arg2) columns of DataFrame (optionally pass FeatureUnions)
-        
-        example: df.sk.transform(make_union(StandardScaler(), MinMaxScaler()), OneHotEncoder())
-        """
+    def _fit(self, num_transformer, obj_transformer):
         ct = make_column_transformer(*self._gen_transform_tuple(num_transformer,
                                                                 obj_transformer))
         # it'd be nice to shorten the generated names here
         transformer = FrameTransformer(ct.transformers)
-        df = transformer.fit_transform(self._df)
+        self.FT = transformer.fit(self._df)
+        for ttpl in self.FT.transformers.transformers:
+            yield ttpl[1]
+
+    def fit(self, num_transformer=None, obj_transformer=None):
+        """
+        Pass transformers to apply to numeric (arg1) and non numeric
+        (arg2) columns of DataFrame
+
+        Valid estimators include FeatureUnions and Pipelines ending in
+        a transformer and any custom sklearn compliant estimators
+
+        not sure if it will work with transformers that expect to work
+        with methods of DataFrames (test df.dt?)
+        
+        It returns a tuple of transformers used by the underlying
+        ColumnTransformers which can be used as any fitted estimator.
+
+        example:
+        df.sk.fit(make_union(StandardScaler(), MinMaxScaler()), OneHotEncoder())
+
+        Note:
+        it's still a column_transformer underneath so transductive
+        estimators will raise TypeError: transform method not implemented
+        """
+        transgen = self._fit(num_transformer=num_transformer,
+                             obj_transformer=obj_transformer)
+        return tuple(transgen) #eh, pretty convenient but could be cleaner
+        
+    def transform(self, FT):
+        """
+        takes a FrameTransformer fit on another dataframe
+
+        Assumes FrameTransformer has been fit previously.
+        """
+        #ideally check that the damned thing's been fit
+        df = FT.transform(self._df)
         df = self._deserialize_columns(df)
         df.columns.names = self._col_names
         return df
 
-    def model(self, ):
+    def fit_transform(self, num_transformer=None, obj_transformer=None):
+        self.fit(num_transformer=num_transformer,
+                 obj_transformer=obj_transformer)
+        return self.transform(self.FT)
+
+    def target(self, y):
         """
-        
+        supply a target dataframe to the accessor in order to perform
+        supervised transformations
         """
         pass
 

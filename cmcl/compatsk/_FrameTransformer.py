@@ -28,25 +28,25 @@ class FrameTransformer(BaseEstimator, TransformerMixin):
         columns specified in that section of the transformer pipeline should be
         treated by the ColumnTransformer's Transform-specific .remainder protocol
         """
-        self.col_transformer = ColumnTransformer(transformers, **kwargs)
+        self.transformers = ColumnTransformer(transformers, **kwargs)
         self.transformed_col_names: List[str] = []
 
     def _get_col_names(self, X: pd.DataFrame):
         """
-        Get names of transformed columns from a fitted self.col_transformer
+        Get names of transformed columns from a fitted self.transformers
         Args:
             X (pd.DataFrame): DataFrame to be fitted on
         Yields:
             Iterator[Iterable[str]]: column names corresponding to each transformer
         """
-        for name, transformer, cols in self.col_transformer.transformers_:
+        for name, transformer, cols in self.transformers.transformers_:
             remainder_names = ["remainder", "default", "rem", "def", "drop", "pass", "exclude", "ignore"]
             if hasattr(transformer, "get_feature_names_out"):
                 colnames = transformer.get_feature_names_out(cols)
                 yield colnames
-            elif name in remainder_names and self.col_transformer.remainder=="passthrough":
+            elif name in remainder_names and self.transformers.remainder=="passthrough":
                 yield X.columns[cols].tolist()
-            elif name in remainder_names and self.col_transformer.remainder=="drop":
+            elif name in remainder_names and self.transformers.remainder=="drop":
                 continue
             else:
                 yield cols        
@@ -56,26 +56,29 @@ class FrameTransformer(BaseEstimator, TransformerMixin):
         Fit ColumnTransformer, and obtain names of transformed columns in advance
         Args:
             X (pd.DataFrame): DataFrame to fit the transformer to
-            y (Index or MultiIndex object, optional): Compliance with fit API. Defaults to None. 
+            y (Any, optional): API Compliance. Defaults to None.
         """
         assert isinstance(X, pd.DataFrame)
-        self.col_transformer = self.col_transformer.fit(X, y)
+        self.transformers = self.transformers.fit(X, y)
         self.transformed_col_names = list(chain.from_iterable(self._get_col_names(X)))
         return self
 
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
-        """Transform a new DataFrame using fitted self.col_transformer
+        """
+        Transform a new DataFrame using fitted self.transformers
+        Naturally, This is ONLY applicable to inductive estimators.
+        No TSNE yet...
         Args:
             X (pd.DataFrame): DataFrame to be transformed
         Returns:
-            pd.DataFrame: DataFrame transformed by self.col_transformer
+            pd.DataFrame: DataFrame transformed by self.transformers
         """
         assert isinstance(X, pd.DataFrame)
         try: #literally just here to catch manifold.TSNE
-            transformed_X = self.col_transformer.transform(X)
+            transformed_X = self.transformers.transform(X)
         except TypeError:
-            transformed_X = self.col_transformer.fit_transform(X)
+            transformed_X = self.transformers.fit_transform(X)
         if isinstance(transformed_X, np.ndarray):
             return pd.DataFrame(transformed_X, index=X.index, 
             columns=self.transformed_col_names)
