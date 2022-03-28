@@ -75,10 +75,7 @@ class FrameTransformer(BaseEstimator, TransformerMixin):
             pd.DataFrame: DataFrame transformed by self.transformers
         """
         assert isinstance(X, pd.DataFrame)
-        try: #literally just here to catch manifold.TSNE
-            transformed_X = self.transformers.transform(X)
-        except TypeError:
-            transformed_X = self.transformers.fit_transform(X)
+        transformed_X = self.transformers.transform(X)
         if isinstance(transformed_X, np.ndarray):
             return pd.DataFrame(transformed_X, index=X.index, 
             columns=self.transformed_col_names)

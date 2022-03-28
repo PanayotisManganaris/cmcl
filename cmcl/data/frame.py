@@ -181,21 +181,28 @@ class SciKitAccessor():
         Pass transformers to apply to numeric (arg1) and non numeric
         (arg2) columns of DataFrame
 
-        Valid estimators include FeatureUnions and Pipelines ending in
-        a transformer and any custom sklearn compliant estimators
+        Valid estimators include FeatureUnions, Pipelines ending in
+        a transformer, and any custom sklearn compliant estimators
 
         not sure if it will work with transformers that expect to work
         with methods of DataFrames (test df.dt?)
+
+        returns:
+        1-or-2-tuple of the fitted transformers passed by
+        the user.
         
-        It returns a tuple of transformers used by the underlying
-        ColumnTransformers which can be used as any fitted estimator.
+        To use the sk accessor's transform method on another dataframe
+        of the same dimensions, a fitted FrameTransformer must be
+        supplied. The Full FrameTransformer can be obtained from the
+        accessor's TF attribute directly if induction is desired
 
         example:
         df.sk.fit(make_union(StandardScaler(), MinMaxScaler()), OneHotEncoder())
 
         Note:
-        it's still a column_transformer underneath so transductive
-        estimators will raise TypeError: transform method not implemented
+        it's a column_transformer underneath so transductive
+        estimators will raise TypeError: transform method not
+        implemented
         """
         transgen = self._fit(num_transformer=num_transformer,
                              obj_transformer=obj_transformer)
