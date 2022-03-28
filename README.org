@@ -14,32 +14,30 @@
 #+cite_export:
 * Overview
 This README also serves as a design document. Any heading marked TODO may as well be wishful thinking.
-** On the Shoulders of Giants
-*** Data
-cmcl is a highlevel library for performing machine learning with
-chemical datasets and analyzing the results.
 
-It is built around Pandas. This ensures data is handled efficiently as
-it is processed through any variety of inquiries, transformations,
+cmcl is a highlevel library for featurizing chemical datasets,
+creating models, and analyzing the results. Also, it includes a
+simple user interface for aggregating data from computational
+experiments and committing the results to a local database. It also
+includes tools for sharing this database with collaborators.
+
+It has evolved to include a pandas centric API for implementing
+feature engineering and machine learning workflows. A tensorflow
+accessor is also work in progress.
+
+cmcl is built around Pandas. This ensures data is handled efficiently
+as it is processed through any variety of inquiries, transformations,
 and mapping operations enabled through the succinct and powerful
 Pandas api
 
-It also leverages the Pandas tabular data to ensure complex data
-is never presented to the user as an inscrutable array.
-*** NEXT Models -- add citations!
-:STATUSLOG:
-- State "NEXT"       from              [2022-02-13 Sun 16:02]
-:END:
-cmcl strives to improve the user interface of various machine learning
-libraries, by unifying them with the pandas API through a .model Accessor
-method:
-- scikit-learn
-  - RFR -- ambition, generalize to ensemble regressors
-- tensorflow
-  - early wip
-- sisso
-  - early wip
-*** NEXT Chemistry Featurization
+It also leverages Pandas table representations to ensure data is never
+presented to the user as an inscrutable array.
+** On the Shoulders of Giants
+*** TODO Data
+- [ ] VASP parser
+- [ ] sqlite rclone interface
+- [ ] cmcl database
+*** NEXT Featurization
 :STATUSLOG:
 - State "NEXT"       from "TODO"       [2022-02-13 Sun 16:02]
 :END:
@@ -48,6 +46,9 @@ cmcl's main offer is easy featurization of chemical datasets.
 Tabular records of chemical formula and associated observations need
 only be loaded as a dataframe before cmcl's formula parser can be used
 to convert formula strings into equivalent numerical descriptors.
+- [X] descriptors->relational queries via pandas
+- [ ] descriptors->Composition objects->pymatgen feature descriptors
+- [ ] structure object generation and feature calculations
 
 These compositions -- themselves a dataframe -- can then be further
 processed into other feature sets using a variety of libraries
@@ -55,11 +56,33 @@ processed into other feature sets using a variety of libraries
 - Matminer
 - DScribe [[cite:&himanen-2020-dscrib]]
 - MEGnet [[cite:&chen-2019-graph-networ]]
+*** NEXT Models
+:STATUSLOG:
+- State "NEXT"       from              [2022-02-13 Sun 16:02]
+:END:
+cmcl integrates with various popular machine learning libraries by
+unifying them with the pandas API through dedicated dataframe
+accessors that strive to mimic familiar workflows
+**** NEXT scikit-learn
+:STATUSLOG:
+- State "NEXT"       from              [2022-03-28 Mon 12:41]
+:END:
+- [-] sk estimators API
+  - [X] inductive transformers
+  - [ ] decompositions need to rename columns
+  - [ ] supervised transformers
+  - [ ] predictive/classifier estimators 
+  - [ ] transductive transformers
+- [ ] testing scikit-contrib tools:
+  - [ ] pysisso by [[cite:&pysisso2020]] implementing [[cite:&ouyang-2018-sisso]]
+**** TODO tensorflow
+  - early wip
 *** TODO Visualization
-Model visualization is dependent on matplotlib. A custom pandas
-plotting backend called spyglass -- also an early work in progress --
-is being developed in parallel for automating the process of producing
-Mannodi Group standard exploratory plots and publication quality figures
+Model visualization is dependent on matplotlib. Custom plotting
+functions are available through spyglass -- also an early work in
+progress. spyglass is being developed in parallel for automating the
+process of producing Mannodi Group standard exploratory plots and
+publication quality figures
 ** Specialized Features
 *** TODO Data Aggregation
 cmcl exposes itself as a commandline tool designed to aggregate
@@ -98,7 +121,7 @@ For steadfast conda users:
 proceed to run your python process/jupyter kernel of choice and enjoy.
 * Contribution
 Yes Please.
-* Usage Examples
+* TODO Usage Examples
 ** Quick Scikit-Learn Random Forest Regression
 #+begin_src jupyter-python :session "py" :exports "both" :results "raw drawer"
   import pandas as pd
