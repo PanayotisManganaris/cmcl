@@ -13,31 +13,26 @@
 #+creator: Emacs 29.0.50 (Org mode 9.5.2)
 #+cite_export:
 * Overview
-This README also serves as a design document. Any heading marked TODO may as well be wishful thinking.
+This README also serves as a design document. Any heading marked TODO
+may as well be wishful thinking.
 
-cmcl is a highlevel library for featurizing chemical datasets,
-creating models, and analyzing the results. Also, it includes a
-simple user interface for aggregating data from computational
-experiments and committing the results to a local database. It also
-includes tools for sharing this database with collaborators.
+cmcl is a high-level library for aggregating chemical datasets and
+computing a variety of features
 
-It has evolved to include a pandas centric API for implementing
-feature engineering and machine learning workflows. A tensorflow
-accessor is also work in progress.
+It includes a simple user interface for aggregating data from
+computational experiments and committing the results to a local
+database. It also includes tools for sharing this database with
+collaborators.
 
 cmcl is built around Pandas. This ensures data is handled efficiently
 as it is processed through any variety of inquiries, transformations,
 and mapping operations enabled through the succinct and powerful
 Pandas api
-
-It also leverages Pandas table representations to ensure data is never
-presented to the user as an inscrutable array.
-** On the Shoulders of Giants
-*** TODO Data
+* TODO Data
 - [ ] VASP parser
 - [ ] sqlite rclone interface
 - [ ] cmcl database
-*** NEXT Featurization
+* NEXT Featurization
 :STATUSLOG:
 - State "NEXT"       from "TODO"       [2022-02-13 Sun 16:02]
 :END:
@@ -56,100 +51,50 @@ processed into other feature sets using a variety of libraries
 - Matminer
 - DScribe [[cite:&himanen-2020-dscrib]]
 - MEGnet [[cite:&chen-2019-graph-networ]]
-*** NEXT Models
-:STATUSLOG:
-- State "NEXT"       from              [2022-02-13 Sun 16:02]
-:END:
-cmcl integrates with various popular machine learning libraries by
-unifying them with the pandas API through dedicated dataframe
-accessors that strive to mimic familiar workflows
-**** NEXT scikit-learn
-:STATUSLOG:
-- State "NEXT"       from              [2022-03-28 Mon 12:41]
-:END:
-- [-] sk estimators API
-  - [X] inductive transformers
-  - [ ] decompositions need to rename columns
-  - [ ] supervised transformers
-  - [ ] predictive/classifier estimators 
-  - [ ] transductive transformers
-- [ ] testing scikit-contrib tools:
-  - [ ] pysisso by [[cite:&pysisso2020]] implementing [[cite:&ouyang-2018-sisso]]
-**** TODO tensorflow
-  - early wip
-*** TODO Visualization
-Model visualization is dependent on matplotlib. Custom plotting
-functions are available through spyglass -- also an early work in
-progress. spyglass is being developed in parallel for automating the
-process of producing Mannodi Group standard exploratory plots and
-publication quality figures
-** Specialized Features
-*** TODO Data Aggregation
-cmcl exposes itself as a commandline tool designed to aggregate
-computational data from VASP and Quantum Espresso experiment directory
-trees
-*** TODO Data Transformation
-cmcl readily provides data transformations in some hybrid of the sense
-meant by sklearn and pandas. any given datafram can be subject to:
-- pca
-- tsne
-These manipulations are performed through an extension to the pandas
-transformer api (or maybe it's easier done through adedicated
-accessor) however, the sklearn methods used to compute the
-transformations do not necessarily preserve the table's rank.
-**** Notice
-Users should note the topological nature of compositional and
-composition-derived data features. PCA may reveal artificial
-variance/clustering in insufficiently graduated chemical spaces.
-*** TODO Communication and Research Reproducibility
-cmcl can be installed with a set of pretrained and optimized
-predictors for Perovskite semiconductors developed by the Mannodi Group.
+** Perovskite Property Computation
+- [ ] compute SLME for photovoltaic absorbers.
+  Uses SL3ME Implementation of [[cite:&yu-2012-ident-poten]] by @Idwillia on github
+
+* Data Handling Workflow
+** TODO Data Aggregation
+cmcl exposes itself as a commandline tool for aggregate computational
+data from VASP and Quantum Espresso experiment directory trees
+* TODO Formula generation
+includes tools for randomly creating formula from a set of
+rules. Usually better to systematically plan an experiment though
+* Property Prediction
+cmcl includes some pretrained models which may be used to infer the
+properties of chemistries
+** TODO Methods for applying pretrained models 
 * Installation
 cmcl is very early in development.
 ** Install by cloning the repository
-cmcl can be installed locally in editable mode for the time being. It
-is a poetry project and is best installed using the poetry
-package+environment manager. To which I can say: I *think* i've set up
-the configuration correctly.
-
-For steadfast conda users:
-1. create an empty conda env
-2. conda install pip locally
-3. pip install poetry
-4. poetry install cmcl
+yogi can be installed into a standard python environment.  It is a
+poetry project and may be installed using pip.
 
 proceed to run your python process/jupyter kernel of choice and enjoy.
 * Contribution
 Yes Please.
+
+To create clean development environment, simply fork/clone the
+repository and the poetry.lock file will take care of dependency
+management.
+
 * TODO Usage Examples
-** Quick Scikit-Learn Random Forest Regression
+** aggregating data
+#+begin_example
+$ cd /to/experiment/dir
+$ python
+>>> cmcl aggregate *
+#+end_example
+** compute features 
 #+begin_src jupyter-python :session "py" :exports "both" :results "raw drawer"
   import pandas as pd
   from cmcl.data.frame import *
-  ## load data
-  df = pd.read_whatever(data)
   #df.Formula or df.formula must exist as a data column.
   #there's a fairly broad range of acceptable formula grammer
-  comp_matrix = df.ft.comp()
-  target_prediction, shuffled_comp_matrix, regressor_obj = df.target.model.RFR(comp_matrix)
-  total_df = pd.concat([df, comp_matrix, target_prediction], axis=1)
+  df.ft.comp()
 #+end_src
-The dataframe index is shuffled but preserved. index-in = index-out.
-So, the predictions may be merged/concatenated with the original data.
-** TODO Pandas-ified model metric evaluations
-a convenient pandas centric api for quantifying model performance via
-familiar sci-kit learn methods is being designed
-** learning curve
-test efficacy of a model for multiple training set sizes while
-retaining awareness of record indices
-** TODO hyperparameter optimization
-*** grid search
-*** beyesian search
-** TODO inverse design
-mannodi and kern style GA
-** TODO model improvement guide
-ideally, cmcl will in some limited way enable researchers to "master
-their dataset" relatively painlessly
 * TODO Data Aggregation
 ** TODO pymatgen assimilation library
 For collecting VASP results
