@@ -53,8 +53,8 @@ processed into other feature sets using a variety of libraries
 - MEGnet [[cite:&chen-2019-graph-networ]]
 ** Perovskite Property Computation
 - [ ] compute SLME for photovoltaic absorbers.
-  Uses SL3ME Implementation of [[cite:&yu-2012-ident-poten]] by @Idwillia on github
-
+  Uses SL3ME Implementation of [[cite:&yu-2012-ident-poten]] by @Idwillia on Github
+- [ ] 
 * Data Handling Workflow
 ** TODO Data Aggregation
 cmcl exposes itself as a commandline tool for aggregate computational
