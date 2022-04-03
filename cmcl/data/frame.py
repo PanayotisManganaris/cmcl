@@ -10,7 +10,6 @@ from cmcl.features.extract_constituents import CompositionTable
 #metadata handling
 from cmcl.data.index import ColumnGrouper
 #Frame transformer might be movable to cmcl.data.index
-from cmcl.compatsk._FrameTransformer import FrameTransformer
 
 @pd.api.extensions.register_dataframe_accessor("ft")
 class FeatureAccessor():
