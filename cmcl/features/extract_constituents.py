@@ -162,8 +162,7 @@ class CompositionTable():
     Create Dataframe of Compositions and pass to FeatureAccessor for future reference.
     """
     def __init__(self, df):
-        self.compdf = pd.DataFrame([])
-        self.compdf.index = df.index
+        self.compdf = pd.DataFrame(df, columns=[])
         self._validate(df)
 
     def _validate(self, df):
