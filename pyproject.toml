@@ -1,27 +1,19 @@
 [tool.poetry]
 name = "cmcl"
-version = "0.0.1"
+version = "0.1.5"
 description = "aggregate chemical formula and measurments, train models, optimize models, predict properties of new chemistries"
 authors = ["Panayotis Manganaris <panos.manganaris@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<3.11"
-sklearn = "^0.0"
-keras = "^2.8.0"
-pandas = "^1.4.0"
-numpy = "^1.22.2"
-matplotlib = "^3.5.1"
-click = "^8.0.3"
-Unidecode = "^1.3.2"
-mplcursors = "^0.5.1"
-megnet = "^1.3.0"
-tensorflow = "^2.8.0"
+python = "^3.10"
+pandas = "^1.4.2"
+click = "^8.1.2"
+Unidecode = "^1.3.4"
 mendeleev = "^0.9.0"
 
 [tool.poetry.dev-dependencies]
-jupyter = "^1.0.0"
-tabulate = "^0.8.9"
-PyQt5 = "^5.15.6"
+ipython = "^8.2.0"
+ipykernel = "^6.11.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
