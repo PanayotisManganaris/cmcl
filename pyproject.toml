@@ -5,8 +5,8 @@ description = "aggregate chemical formula and measurments, train models, optimiz
 authors = ["Panayotis Manganaris <panos.manganaris@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-pandas = "^1.4.2"
+python = ">=3.8,<3.11"
+pandas = "^1.4.0"
 click = "^8.1.2"
 Unidecode = "^1.3.4"
 mendeleev = "^0.9.0"

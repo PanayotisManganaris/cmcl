@@ -262,7 +262,12 @@ optional = false
 python-versions = ">=3.8"
 
 [package.dependencies]
-numpy = {version = ">=1.21.0", markers = "python_version >= \"3.10\""}
+numpy = [
+    {version = ">=1.18.5", markers = "platform_machine != \"aarch64\" and platform_machine != \"arm64\" and python_version < \"3.10\""},
+    {version = ">=1.19.2", markers = "platform_machine == \"aarch64\" and python_version < \"3.10\""},
+    {version = ">=1.20.0", markers = "platform_machine == \"arm64\" and python_version < \"3.10\""},
+    {version = ">=1.21.0", markers = "python_version >= \"3.10\""},
+]
 python-dateutil = ">=2.8.1"
 pytz = ">=2020.1"
 
@@ -505,8 +510,8 @@ python-versions = "*"
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.10"
-content-hash = "305544151d6a61d95cc9268ddff378b0fa4d049b607120af5282bf8f8ede75b7"
+python-versions = ">=3.8,<3.11"
+content-hash = "b0883da7f4e9a2dbc965d3d6bd18ef8b0459658c0c04c021d6bf737dc8afe8a1"
 
 [metadata.files]
 appnope = [
