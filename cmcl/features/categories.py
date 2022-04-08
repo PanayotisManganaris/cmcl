@@ -23,7 +23,7 @@ class Categories():
         df.pipe(Categories.logif, condition=lambda x: x>1, default="pure")
         """
         def _logif(row):
-            catstring = " & "
+            catstring = "_&_"
             stringlist=[]
             for entry, label in zip(row, df.columns):
                 if condition(entry):
