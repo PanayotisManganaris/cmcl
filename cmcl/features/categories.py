@@ -7,8 +7,8 @@ import pandas as pd
 
 class Categories():
     """
-    Tools for simplifying the generation of categorical columns based
-    on the values of data frames.
+    Container class holding tools for simplifying the generation of
+    categorical columns based on the values of data frames.
     
     Ideal for producing scatter plot labels.
     """
