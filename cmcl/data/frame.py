@@ -3,6 +3,7 @@ logfmt = '[%(levelname)s] %(asctime)s - %(message)s'
 logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
 
 import pandas as pd
+import numpy as np
 
 #feature computers
 from cmcl.features._extract_constituents import CompositionTable
@@ -33,7 +34,6 @@ class FeatureAccessor():
         #working original
         self._df = df
         self._compdf = None
-        self._mgrdf = None
         
     @staticmethod
     def _validate(df):
@@ -57,22 +57,50 @@ class FeatureAccessor():
             self._compdf = feature.get()
         return self._compdf
     
-    def mrg(self):
+    def derive_from(self, right:pd.DataFrame, join_left_on:str, join_right_on:str):
         """
-        apply to a composition table.
-        Get array of elemental properties currently being considered
-        by Mannodi Research Group for every compound present as
-        non-NaN/nonzero entry in composition table.
+        convenience function for performing a database style 3-way join where:
+        1. the accessed dataframe's formula index is treated as the left frame
+        2. the accessed dataframe's contents are converted to a long-form lookup table
+        This is used as weights to link the left to the right
+        3. the right dataframe is supplied by the user
+
+        User provides labels to join on. left labels can be any of
+        either row OR column names (not column labels). right labels
+        can be row labels or columns labels.
+
+        The grouping is always performed by the highest level column
+        index. In combination with the collection accessor, is a
+        potent option for performing collection-wise aggregations.
+
+        The join result is widened and re-indexed to be consistent with
+        the original dimension of the accessed index and returned
         """
-        pass
+        relations = self._df.reset_index().melt(id_vars=self._df.index.names)
+        relations = relations.replace(0, np.NaN) #avoid DIV by 0 
+        relations = relations.dropna(axis=0, subset=["value"])
+        relations = relations.set_index(self._df.index.names, append=False)
+        join = pd.merge(left=relations, right=right, left_on=join_left_on, right_on=join_right_on)
+        join = join.set_index(relations.index)
+        derived = join.groupby(join.columns[0]).apply(
+            lambda df: df.groupby(level="Formula").apply(
+                lambda df: pd.DataFrame(np.average(
+                    a=df.select_dtypes(include=np.number), axis=0, weights=df.value),
+                                        index=df.select_dtypes(include=np.number).columns)))
+        derived = derived.unstack(level=join.columns[0]).unstack(level=-1)
+        derived.columns=derived.columns.droplevel([0])
+        derived = derived.drop(columns="value", level=-1)
+        derived = derived.reindex(index=self._df.index.get_level_values("Formula"))
+        derived.index=self._df.index
+        return derived
 
     def mtmr(self):
         """as above, get array of dscribe inorganic crystal properties"""
-        print("matminer Not Implemented")
+        raise NotImplementedError("matminer Not Implemented")
 
     def meg(self):
         """as above, get array of MEGnet elemental embeddings"""
-        print("megnet Not Implemented")
+        raise NotImplementedError("megnet embeddings Not Implemented")
 
 @pd.api.extensions.register_dataframe_accessor("collect")
 class CollectionAccessor():
