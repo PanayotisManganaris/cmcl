@@ -5,7 +5,7 @@ logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logf
 import pandas as pd
 
 #feature computers
-from cmcl.features.extract_constituents import CompositionTable
+from cmcl.features._extract_constituents import CompositionTable
 
 #metadata handling
 from cmcl.data.index import ColumnGrouper

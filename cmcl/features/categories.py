@@ -2,6 +2,7 @@ import logging
 logfmt = '[%(levelname)s] %(asctime)s - %(message)s'
 logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
 
+from functools import partial
 import pandas as pd
 
 class Categories():
@@ -12,7 +13,7 @@ class Categories():
     Ideal for producing scatter plot labels.
     """
     @staticmethod
-    def logif(df, condition, default=None):
+    def logif(df, condition, default=None, catstring="_&_"):
         """
         produce a series of categorical strings based on the numerical
         contents of a dataframe, its column names, and some condition
@@ -22,8 +23,7 @@ class Categories():
         example:
         df.pipe(Categories.logif, condition=lambda x: x>1, default="pure")
         """
-        def _logif(row):
-            catstring = "_&_"
+        def _logif(row, catstring):
             stringlist=[]
             for entry, label in zip(row, df.columns):
                 if condition(entry):
@@ -32,5 +32,6 @@ class Categories():
                 stringlist.append(str(default))
             catstring = catstring.join(stringlist)
             return catstring
+        _logif = partial(_logif, catstring=catstring)
         catseries = df.apply(_logif, axis=1)
         return catseries
