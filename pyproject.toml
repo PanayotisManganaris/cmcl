@@ -7,8 +7,8 @@ authors = ["Panayotis Manganaris <panos.manganaris@gmail.com>"]
 [tool.poetry.dependencies]
 python = ">=3.7.7,<3.11"
 pandas = ">=1.3.4"
-click = "^8.1.2"
-Unidecode = "^1.3.4"
+click = "^8.0.0"
+Unidecode = "^1.2.0"
 mendeleev = "^0.9.0"
 
 [tool.poetry.dev-dependencies]
