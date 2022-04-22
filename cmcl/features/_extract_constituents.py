@@ -69,10 +69,11 @@ class FormulaParser():
 
     def parse_new_formula(self):
         result = []
-
-        while e := self.parse_formula_element():
+        e = self.parse_formula_element()
+        while e:
             num = self.parse_num()
             result.append((e, num))
+            e = self.parse_formula_element()
         return result
 
     def parse_formula_element(self):
