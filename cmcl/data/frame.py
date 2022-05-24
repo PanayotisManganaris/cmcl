@@ -156,6 +156,24 @@ class CollectionAccessor():
         constituent site.
         """
         segments = {"A":["MA", "FA", "Cs", "Rb", "K"],
-                    "B":["Pb", "Sn", "Ge", "Ba", "Sr", "Ca", "Be", "Mg", "Si", "V", "Cr", "Mn", "Fe", "Ni", "Zn", "Pd", "Cd", "Hg"],
+                    "B":["Pb", "Sn", "Ge", "Ba", "Sr", "Ca", "Be",
+                         "Mg", "Si", "V", "Cr", "Mn", "Fe", "Ni",
+                         "Zn", "Pd", "Cd", "Hg", 'Ag', 'Sb', 'P',
+                         'Cu', 'Bi', 'B', 'N', 'H', 'C', 'Ac', 'Co',
+                         'Eu', 'Na', 'Al', 'F', 'Tb', 'O', 'S', 'Ti',
+                         'Li', 'Sm', 'Th', 'Y', 'La', 'U', 'Nb', 'Au',
+                         'In'],
                     "X":["I", "Br", "Cl"]}
         return self.by(segments, ("site","element"))
+
+    def org(self):
+        """
+        default ColumnGrouper. groups Perovskite composition tables by
+        organic/inorganic 
+        """
+        segments = {'organic':["MA", "FA"],
+                    "inorganic":["Cs", "Rb", "K", "Pb", "Sn", "Ge",
+                                 "Ba", "Sr", "Ca", "Be", "Mg", "Si",
+                                 "V", "Cr", "Mn", "Fe", "Ni", "Zn",
+                                 "Pd", "Cd", "Hg", "I", "Br", "Cl"]}
+        return self.by(segments, ("type","element"))
