@@ -171,9 +171,13 @@ class CollectionAccessor():
         default ColumnGrouper. groups Perovskite composition tables by
         organic/inorganic 
         """
-        segments = {'organic':["MA", "FA"],
+        segments = {'organic':["MA", "FA", 'N', 'H', 'C', 'O'],
                     "inorganic":["Cs", "Rb", "K", "Pb", "Sn", "Ge",
                                  "Ba", "Sr", "Ca", "Be", "Mg", "Si",
                                  "V", "Cr", "Mn", "Fe", "Ni", "Zn",
-                                 "Pd", "Cd", "Hg", "I", "Br", "Cl"]}
+                                 "Pd", "Cd", "Hg", 'Ag', 'Sb', 'P',
+                                 'S', 'Cu', 'Bi', 'B', 'Ac', 'Co',
+                                 'Eu', 'Na', 'Al', 'F', 'Tb', 'Ti',
+                                 'Li', 'Sm', 'Th', 'Y', 'La', 'U',
+                                 'Nb', 'Au', 'In', "I", "Br", "Cl"]}
         return self.by(segments, ("type","element"))
