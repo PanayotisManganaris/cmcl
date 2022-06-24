@@ -155,14 +155,16 @@ class CollectionAccessor():
         default ColumnGrouper. groups Perovskite composition tables by
         constituent site.
         """
-        segments = {"A":["MA", "FA", "Cs", "Rb", "K"],
+        segments = {"A":["MA", "FA", "AM", "Cs", "Rb", "K"],
                     "B":["Pb", "Sn", "Ge", "Ba", "Sr", "Ca", "Be",
                          "Mg", "Si", "V", "Cr", "Mn", "Fe", "Ni",
                          "Zn", "Pd", "Cd", "Hg", 'Ag', 'Sb', 'P',
                          'Cu', 'Bi', 'B', 'N', 'H', 'C', 'Ac', 'Co',
                          'Eu', 'Na', 'Al', 'F', 'Tb', 'O', 'S', 'Ti',
                          'Li', 'Sm', 'Th', 'Y', 'La', 'U', 'Nb', 'Au',
-                         'In'],
+                         'In', 'Am', 'Ce', 'Hf', 'Ir', 'Mo', 'Np',
+                         'Pa', 'Pr', 'Zr', 'Tm', 'Yb', 'Gd', 'Ta',
+                         'Ga', 'Rh', 'W', 'Nd', 'Pu', 'Tc', 'Tl'],
                     "X":["I", "Br", "Cl"]}
         return self.by(segments, ("site","element"))
 
@@ -171,7 +173,7 @@ class CollectionAccessor():
         default ColumnGrouper. groups Perovskite composition tables by
         organic/inorganic 
         """
-        segments = {'organic':["MA", "FA", 'N', 'H', 'C', 'O'],
+        segments = {'organic':["MA", "FA", "AM", 'N', 'H', 'C', 'O'],
                     "inorganic":["Cs", "Rb", "K", "Pb", "Sn", "Ge",
                                  "Ba", "Sr", "Ca", "Be", "Mg", "Si",
                                  "V", "Cr", "Mn", "Fe", "Ni", "Zn",
@@ -179,5 +181,9 @@ class CollectionAccessor():
                                  'S', 'Cu', 'Bi', 'B', 'Ac', 'Co',
                                  'Eu', 'Na', 'Al', 'F', 'Tb', 'Ti',
                                  'Li', 'Sm', 'Th', 'Y', 'La', 'U',
-                                 'Nb', 'Au', 'In', "I", "Br", "Cl"]}
+                                 'Nb', 'Au', 'In', 'Am', 'Ce', 'Hf',
+                                 'Ir', 'Mo', 'Np', 'Pa', 'Pr', 'Zr',
+                                 'Tm', 'Yb', 'Gd', 'Ta', 'Ga', 'Rh',
+                                 'W', 'Nd', 'Pu', 'Tc', 'Tl', "I",
+                                 "Br", "Cl"]}
         return self.by(segments, ("type","element"))

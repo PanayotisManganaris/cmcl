@@ -17,7 +17,7 @@ ptable ="""H                                                                   H
                        Ce  Pr  Nd  Pm  Sm  Eu  Gd  Tb  Dy  Ho  Er  Tm  Yb  Lu     
                        Th  Pa  U   Np  Pu  Am  Cm  Bk  Cf  Es  Fm  Md  No  Lr    """
 
-molecules = "FA|MA"
+molecules = "FA|MA|AM"
 
 #warning: lets numbers of conjugate form slip by even if symbols dont match
 #also lets sym0* through -- which is probably ok
