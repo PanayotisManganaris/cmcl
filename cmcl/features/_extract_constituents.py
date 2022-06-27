@@ -44,7 +44,7 @@ class FormulaParser():
     each method is applied in sequence, progressively mutating the index
     """
     def __init__(self, alloy):
-        self.alloy = alloy
+        self.alloy = alloy.replace("_","")
         self.index = 0
         self.lparen = re.compile(r"\(")
         self.rparen = re.compile(r"\)")
@@ -133,7 +133,10 @@ def flatten_list(list_of_lists, flat_list=None):
     return flat_list
 
 def compile_nums(flatlist):
-    """create dictionary by combining key values for repeated keys. provides symbolic concatination for unlike dtypes"""
+    """
+    create dictionary by combining key values for repeated keys.
+    provides symbolic concatenation for unlike dtypes
+    """
     collect_dict = {}
     for eltuple in flatlist:
         if eltuple[0] not in collect_dict.keys():
