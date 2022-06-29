@@ -11,7 +11,7 @@ click = "^8.0.0"
 Unidecode = "^1.2.0"
 mendeleev = "^0.9.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 jupyter = "^1.0.0"
 
 [build-system]
