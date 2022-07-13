@@ -65,7 +65,7 @@ class FormulaParser():
         if match:
             self.index = match.end()
             number = self.alloy[match.span()[0]:match.span()[1]]
-            return pd.to_numeric(number or 1.0, errors="ignore")
+            return pd.to_numeric(number or 1, errors="ignore")
 
     def parse_new_formula(self):
         result = []
