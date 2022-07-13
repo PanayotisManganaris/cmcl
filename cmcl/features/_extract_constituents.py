@@ -44,7 +44,7 @@ class FormulaParser():
     each method is applied in sequence, progressively mutating the index
     """
     def __init__(self, alloy):
-        self.alloy = alloy.replace("_","")
+        self.alloy = alloy
         self.index = 0
         self.lparen = re.compile(r"\(")
         self.rparen = re.compile(r"\)")
@@ -189,6 +189,7 @@ class CompositionTable():
 
     def make(self):
         # normalize string encoding!
+        self.Formula = self.Formula.str.replace("[\_\{\}]", "", regex=True)
         self.Formula = self.Formula.apply(lambda entry: "".join(list(map(unidecode, entry))))
         compdict_s = self.Formula.apply(process_formula)
         compdf = pd.DataFrame(compdict_s.to_list())
