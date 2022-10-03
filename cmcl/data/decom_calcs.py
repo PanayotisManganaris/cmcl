@@ -1,33 +1,19 @@
-###############################################################################
-#
-#             Python 3.9
-#      Decomposition Energy Calculator
-#      input: element fraction vector
-#             element space:
-#     A:
-#     B:
-#     X: Cl, Br, I
-#
-#      output: decomposition energy value, mixing entropy included
-#
-#
-#       future development:
-# (1) combine with fomula -> element fraction vector
-# (2) ref state phase library, make it global when use
-#
-###############################################################################
-
-# modules dependency
 import numpy as np
-import pandas
+import pandas as pd
 import copy
+import os
 
-# initialize the reference data
-# TOTEN for reference compounds loading
-AX_ref_HSE = pandas.read_excel('../db/ref_data.xlsx', sheet_name='AX_HSE', engine='openpyxl')
-AX_ref_PBE = pandas.read_excel('../db/ref_data.xlsx', sheet_name='AX_PBE', engine='openpyxl')
-BX2_ref_HSE = pandas.read_excel('../db/ref_data.xlsx', sheet_name='BX2_HSE', engine='openpyxl')
-BX2_ref_PBE = pandas.read_excel('../db/ref_data.xlsx', sheet_name='BX2_PBE', engine='openpyxl')
+from typing import Union, Any
+
+# reference energies of constituent phases
+AX_ref_HSE = pd.read_excel(os.path.expanduser('~/src/cmcl/cmcl/db/ref_data.xlsx'),
+                           sheet_name='AX_HSE', engine='openpyxl')
+AX_ref_PBE = pd.read_excel(os.path.expanduser('~/src/cmcl/cmcl/db/ref_data.xlsx'),
+                           sheet_name='AX_PBE', engine='openpyxl')
+BX2_ref_HSE = pd.read_excel(os.path.expanduser('~/src/cmcl/cmcl/db/ref_data.xlsx'),
+                            sheet_name='BX2_HSE', engine='openpyxl')
+BX2_ref_PBE = pd.read_excel(os.path.expanduser('~/src/cmcl/cmcl/db/ref_data.xlsx'),
+                            sheet_name='BX2_PBE', engine='openpyxl')
 AX_ref_HSE_dict = AX_ref_HSE.set_index('sys')['HSE_ref'].to_dict()
 AX_ref_PBE_dict = AX_ref_PBE.set_index('sys')['PBE_ref'].to_dict()
 BX2_ref_HSE_dict = BX2_ref_HSE.set_index('sys')['HSE_ref'].to_dict()
@@ -37,15 +23,18 @@ ref_HSE_dict.update(BX2_ref_HSE_dict)
 ref_PBE_dict = AX_ref_PBE_dict
 ref_PBE_dict.update(BX2_ref_PBE_dict)
 
+# analyze mixing 
+def element_exist_list(frac_mix:Union[list,np.ndarray]):
+    """
+    args:
+    composition vector in implicit order
 
-# print(ref_HSE_dict)
-# print(ref_PBE_dict)
-
-
-# mixing analyze
-# imput an np array or list, default is list
-def element_exist_list(frac_vec_input):
-    frac_mix = np.array(copy.deepcopy(frac_vec_input))
+    returns:
+    tuple of
+    0. list counting alements involved at each site
+    1. list of elements
+    2. list of ammounts of each element
+    """
     # element_exits is the index of element, not fraction
     element_exist = np.nonzero(frac_mix)[0]
     element_space = A_element + B_element + X_element
@@ -108,21 +97,30 @@ def decomp_phase_ext(element_input, formula_input, mix, element_frac):
     return decomp_phase, decomp_phase_frac
 
 
-def entropy_calcs(decomp_frac):
-    decomp_frac_test = copy.deepcopy(decomp_frac)
-    # kB in eV/K, using 300K as room temperature
-    k_b = 8.617e-5
+def entropy_calcs(decomp_frac:np.ndarray):
+    """
+    compute entropy of mixing from 
+    k_B and T_ref can be set externally
+    """
+    k_B = 8.617e-5
     T_ref = 300
-    # print(element, mix, fomula)
-    mixing_entropy = k_b * T_ref * np.dot(np.array(decomp_frac_test),
-                                          np.log(np.array(decomp_frac_test)))
+    mixing_entropy = k_B * T_ref * np.dot(decomp_frac,
+                                          np.log(decomp_frac))
     return mixing_entropy
 
 
 # decomposition calculation function
-def decomp_calc(frac_input, TOTEN_input, functional='HSE'):
-    frac = copy.deepcopy(frac_input)
-    TOTEN = copy.deepcopy(TOTEN_input)
+def decomp_calc(frac, TOTEN, functional='HSE'):
+    """
+    Decomposition Energy Calculator
+    input: element fraction vector
+    element space:
+    - A:
+    - B:
+    - X: Cl, Br, I
+
+    output: decomposition energy value, mixing entropy included
+    """
     if functional == 'HSE':
         element, mix, fomula, element_frac = mixing_ana(frac)
         # print(element, mix, fomula)
@@ -189,19 +187,28 @@ if __name__ == '__main__':
     # test_decomp = decomp_calc(test_sample, test_TOTEN, functional='PBE')
     # print(test_decomp)
 
-    decomp_result = []
-    sample_input = pandas.read_excel('Decomp_pbe.xlsx', engine='openpyxl')
-    sample_list = sample_input.values.tolist()
-    num_sample = len(sample_list)
+    import sys
+    import os
+    sys.path.append(os.path.expanduser('~/src/cmcl'))
+    import sqlite3
+    import cmcl
 
-    for sample in range(num_sample):
+    decomp_result = []
+    mannodi_pbe_q = """SELECT *
+                       FROM mannodi_pbe"""
+    with sqlite3.connect(os.path.expanduser("~/src/cmcl/cmcl/db/perovskites.db")) as conn:
+        mannodi_pbe = pd.read_sql(mannodi_pbe_q, conn, index_col="index")
+    comp = mannodi_pbe.ft.comp()
+    sample_list = comp.values[:10].tolist()
+
+    for sample in sample_list:
         print(sample)
-        test_decomp = decomp_calc(sample_list[sample][0:14],
-                                  sample_list[sample][-1],
+        test_decomp = decomp_calc(sample[0:14],
+                                  sample[-1],
                                   functional='PBE')
         print(test_decomp)
         decomp_result.append(test_decomp)
     print(decomp_result)
     result_out = sample_input
     result_out['decomp'] = decomp_result
-    result_out.to_excel('Decomp_calcs_results.xlsx', engine='openpyxl')
+    print(result_out)
