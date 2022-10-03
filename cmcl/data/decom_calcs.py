@@ -49,13 +49,13 @@ def element_exist_list(frac_vec_input):
     # element_exits is the index of element, not fraction
     element_exist = np.nonzero(frac_mix)[0]
     element_space = A_element + B_element + X_element
-    formula = [element_space[x] for x in element_exist]
-    element_frac = [frac_mix[x] for x in element_exist]
+    formula = [element_space[x] for x in element_exist] #constituents
+    element_frac = [frac_mix[x] for x in element_exist] #constituent fractions
     # collect elements for each site
     # [element number in A site,element number in B site,element number in X site]
     element_mixed_num = [0, 0, 0]
     for elem_num in range(len(element_exist)):
-        if element_exist[elem_num] <= 4:
+        if element_exist[elem_num] <= 4: #TODO: access element keys
             element_mixed_num[0] += 1
         elif 5 <= element_exist[elem_num] <= 10:
             element_mixed_num[1] += 1
@@ -114,7 +114,8 @@ def entropy_calcs(decomp_frac):
     k_b = 8.617e-5
     T_ref = 300
     # print(element, mix, fomula)
-    mixing_entropy = k_b * T_ref * np.dot(np.array(decomp_frac_test), np.log(np.array(decomp_frac_test)))
+    mixing_entropy = k_b * T_ref * np.dot(np.array(decomp_frac_test),
+                                          np.log(np.array(decomp_frac_test)))
     return mixing_entropy
 
 
@@ -125,7 +126,10 @@ def decomp_calc(frac_input, TOTEN_input, functional='HSE'):
     if functional == 'HSE':
         element, mix, fomula, element_frac = mixing_ana(frac)
         # print(element, mix, fomula)
-        decomp_phase, decomp_phase_frac = decomp_phase_ext(element, fomula, mix, element_frac)
+        decomp_phase, decomp_phase_frac = decomp_phase_ext(element,
+                                                           fomula,
+                                                           mix,
+                                                           element_frac)
         print(decomp_phase)
         phase_ref_energy = []
         # use decom_phase to search ref energy in dictionary
@@ -135,11 +139,15 @@ def decomp_calc(frac_input, TOTEN_input, functional='HSE'):
         print(phase_ref_energy)
         mixing_entropy = entropy_calcs(decomp_phase_frac)
         print(mixing_entropy)
-        decomp_energy = TOTEN - np.dot(np.array(decomp_phase_frac), np.array(phase_ref_energy)) + mixing_entropy
+        decomp_energy = TOTEN - np.dot(np.array(decomp_phase_frac),
+                                       np.array(phase_ref_energy)) + mixing_entropy
     elif functional == 'PBE':
         element, mix, fomula, element_frac = mixing_ana(frac)
         # print(element, mix, fomula)
-        decomp_phase, decomp_phase_frac = decomp_phase_ext(element, fomula, mix, element_frac)
+        decomp_phase, decomp_phase_frac = decomp_phase_ext(element,
+                                                           fomula,
+                                                           mix,
+                                                           element_frac)
         print(decomp_phase)
         phase_ref_energy = []
         # use decom_phase to search ref energy in dictionary
@@ -149,7 +157,8 @@ def decomp_calc(frac_input, TOTEN_input, functional='HSE'):
         print(phase_ref_energy)
         mixing_entropy = entropy_calcs(decomp_phase_frac)
         print(mixing_entropy)
-        decomp_energy = TOTEN - np.dot(np.array(decomp_phase_frac), np.array(phase_ref_energy)) + mixing_entropy
+        decomp_energy = TOTEN - np.dot(np.array(decomp_phase_frac),
+                                       np.array(phase_ref_energy)) + mixing_entropy
     return decomp_energy
 
 
@@ -184,13 +193,12 @@ if __name__ == '__main__':
     sample_input = pandas.read_excel('Decomp_pbe.xlsx', engine='openpyxl')
     sample_list = sample_input.values.tolist()
     num_sample = len(sample_list)
-    # sample = 2
-    # test_decomp = decomp_calc(sample_list[sample][0:14], sample_list[sample][-1],functional='HSE')
-    # print(sample_list[sample][-1])
-    # print(test_decomp)
+
     for sample in range(num_sample):
         print(sample)
-        test_decomp = decomp_calc(sample_list[sample][0:14], sample_list[sample][-1], functional='PBE')
+        test_decomp = decomp_calc(sample_list[sample][0:14],
+                                  sample_list[sample][-1],
+                                  functional='PBE')
         print(test_decomp)
         decomp_result.append(test_decomp)
     print(decomp_result)
