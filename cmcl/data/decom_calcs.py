@@ -3,7 +3,7 @@ import pandas as pd
 import copy
 import os
 
-from typing import Union, Any
+from typing import Union, Any, Literal
 
 # reference energies of constituent phases
 AX_ref_HSE = pd.read_excel(os.path.expanduser('~/src/cmcl/cmcl/db/ref_data.xlsx'),
@@ -23,17 +23,26 @@ ref_HSE_dict.update(BX2_ref_HSE_dict)
 ref_PBE_dict = AX_ref_PBE_dict
 ref_PBE_dict.update(BX2_ref_PBE_dict)
 
+print(AX_ref_PBE)
+print(BX2_ref_PBE)
+print(AX_ref_HSE)
+print(BX2_ref_HSE)
+
+# define list for element space
+A_element = ['K', 'Rb', 'Cs', 'MA', 'FA']
+B_element = ['Ca', 'Sr', 'Ba', 'Ge', 'Sn', 'Pb']
+X_element = ['Cl', 'Br', 'I']
+
 # analyze mixing 
 def element_exist_list(frac_mix:Union[list,np.ndarray]):
     """
     args:
-    composition vector in implicit order
-
+    14 dimensional composition vector in implicit order
     returns:
     tuple of
-    0. list counting alements involved at each site
+    0. list counting elements involved at each site
     1. list of elements
-    2. list of ammounts of each element
+    2. list of amounts of each element
     """
     # element_exits is the index of element, not fraction
     element_exist = np.nonzero(frac_mix)[0]
@@ -52,13 +61,19 @@ def element_exist_list(frac_mix:Union[list,np.ndarray]):
             element_mixed_num[2] += 1
     return element_mixed_num, formula, element_frac
 
-def mixing_ana(frac_mix):
+def mixing_ana(frac_mix:Union[list,np.ndarray]):
     """
-    
+    mix classifier
+    args:
+    14 dimensional composition vector in implicit order
+    returns:
+    tuple of
+    0. list counting elements involved at each site
+    1. mix classification
+    2. list of elements
+    3. list of amounts of each element
     """
     element_mixed_num, formula, element_frac = element_exist_list(frac_mix)
-    # find mixing, only consider pure, amix, bmix and xmix
-    # only 1 site is mixed
     if element_mixed_num == [1, 1, 1]:
         mixing = 'Pure'
     elif element_mixed_num[1:] == [1, 1] and element_mixed_num[0] != 1:
@@ -72,10 +87,15 @@ def mixing_ana(frac_mix):
         
     return element_mixed_num, mixing, formula, element_frac
 
-# decomposed phase extract
 def decomp_phase_ext(element_tem, formula, mix, element_frac):
     """
-    
+    identify possible decomposition outcomes
+    args:
+    outputs of mixing_ana
+    return:
+    tuple of
+    0. decomposition phases list
+    1. decomposition phases fraction
     """
     if mix == 'Pure':
         decomp_phase = [formula[0] + formula[2], formula[1] + formula[2] + '2']
@@ -111,66 +131,59 @@ def entropy_calcs(decomp_frac:np.ndarray):
                                           np.log(decomp_frac))
     return mixing_entropy
 
-# decomposition calculation function
-def decomp_calc(frac, TOTEN, functional='HSE'):
+def _decomp_calc(frac:Union[list,np.ndarray],
+                 TOTEN:float,
+                 ref_dict:dict):
     """
-    Decomposition Energy Calculator
-    input: element fraction vector
-    element space:
-    - A:
-    - B:
-    - X: Cl, Br, I
+    computes weighted average of possible decomposition pathway
+    energies
 
-    output: decomposition energy value, mixing entropy included
+    accounts for decomposition target energies varying according to
+    functional used in parent calculation
     """
-    if functional == 'HSE':
-        element, mix, fomula, element_frac = mixing_ana(frac)
-        # print(element, mix, fomula)
-        decomp_phase, decomp_phase_frac = decomp_phase_ext(element,
-                                                           fomula,
-                                                           mix,
-                                                           element_frac)
-        print(decomp_phase)
-        phase_ref_energy = []
-        # use decom_phase to search ref energy in dictionary
-        for i in decomp_phase:
-            phase_ref_energy.append(ref_HSE_dict[i])
-        print(decomp_phase_frac)
-        print(phase_ref_energy)
+    element, mix, fomula, element_frac = mixing_ana(frac)
+    decomp_phase, decomp_phase_frac = decomp_phase_ext(element,
+                                                       fomula,
+                                                       mix,
+                                                       element_frac)
+    phase_ref_energy = []
+    for i in decomp_phase: #key reference
+        phase_ref_energy.append(ref_dict[i])
         mixing_entropy = entropy_calcs(decomp_phase_frac)
-        print(mixing_entropy)
-        decomp_energy = TOTEN - np.dot(np.array(decomp_phase_frac),
-                                       np.array(phase_ref_energy)) + mixing_entropy
-    elif functional == 'PBE':
-        element, mix, fomula, element_frac = mixing_ana(frac)
-        # print(element, mix, fomula)
-        decomp_phase, decomp_phase_frac = decomp_phase_ext(element,
-                                                           fomula,
-                                                           mix,
-                                                           element_frac)
-        print(decomp_phase)
-        phase_ref_energy = []
-        # use decom_phase to search ref energy in dictionary
-        for i in decomp_phase:
-            phase_ref_energy.append(ref_PBE_dict[i])
-        print(decomp_phase_frac)
-        print(phase_ref_energy)
-        mixing_entropy = entropy_calcs(decomp_phase_frac)
-        print(mixing_entropy)
         decomp_energy = TOTEN - np.dot(np.array(decomp_phase_frac),
                                        np.array(phase_ref_energy)) + mixing_entropy
     return decomp_energy
 
+# decomposition calculation function
+def decomp_calc(frac:Union[list,np.ndarray],
+                TOTEN:float,
+                functional:Literal['HSE','PBE']='HSE'):
+    """
+    Decomposition Energy Calculator
 
-# define list for element space
-A_element = ['K', 'Rb', 'Cs', 'MA', 'FA']
-B_element = ['Ca', 'Sr', 'Ba', 'Ge', 'Sn', 'Pb']
-X_element = ['Cl', 'Br', 'I']
+    equipped to handle decompositions in Perovskite element space
+    - A: K, Rb, Cs, MA, FA
+    - B: Ca, Sr, Ba, Ge, Sn, Pb
+    - X: Cl, Br, I
+
+    args
+    frac: 14 dimensional composition vector in implicit order
+    TOTEN: energy of dft relaxed structure
+
+    returns
+    decomposition energy value with included mixing entropy
+    """
+    if functional == 'HSE':
+        decomp_energy = _decomp_calc(frac, TOTEN, ref_HSE_dict)
+    elif functional == 'PBE':
+        decomp_energy = _decomp_calc(frac, TOTEN, ref_PBE_dict)
+    return decomp_energy
 
 if __name__ == '__main__':
     # test sample K|Sn|I
     # test_sample = [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 3]
     # test_TOTEN = -133.780
+    # decoE = -117.377
     # test sample KRbMA|Pb|I
     # test_sample = [0.125, 0.125, 0, 0.75, 0, 0, 0, 0, 0, 0, 1, 0, 0, 3]
     # test_TOTEN = -333.01
@@ -195,22 +208,23 @@ if __name__ == '__main__':
     import sqlite3
     import cmcl
 
-    decomp_result = []
     mannodi_pbe_q = """SELECT *
                        FROM mannodi_pbe"""
     with sqlite3.connect(os.path.expanduser("~/src/cmcl/cmcl/db/perovskites.db")) as conn:
-        mannodi_pbe = pd.read_sql(mannodi_pbe_q, conn, index_col="index")
-    comp = mannodi_pbe.ft.comp()
-    sample_list = comp.values[:10].tolist()
+        mannodi_pbe = pd.read_sql(mannodi_pbe_q, conn, index_col="index").head(2)
+    comp = mannodi_pbe.ft.comp().fillna(0)
+    cols = [col for col in A_element+B_element+X_element if col in comp.columns]
+    comp = comp[cols]
 
-    for sample in sample_list:
-        print(sample)
-        test_decomp = decomp_calc(sample[0:14],
-                                  sample[-1],
-                                  functional='PBE')
-        print(test_decomp)
-        decomp_result.append(test_decomp)
-    print(decomp_result)
-    result_out = sample_input
-    result_out['decomp'] = decomp_result
-    print(result_out)
+    calcdf = pd.concat([comp, mannodi_pbe.DecoE_eV], axis=1)
+
+    calcdf.head(2).apply(
+        lambda x: print(x.iloc[0:14].to_numpy(), x.iloc[14]), axis=1
+    )
+    calcdf['DecoE_eV_comp'] = calcdf.head(2).apply(
+        lambda x: decomp_calc(x.iloc[0:14].to_numpy(),
+                              x.iloc[14],
+                              functional='PBE'), axis=1
+    )
+
+    print(calcdf.filter(regex='DecoE'))
