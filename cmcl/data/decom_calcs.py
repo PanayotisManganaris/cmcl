@@ -52,9 +52,10 @@ def element_exist_list(frac_mix:Union[list,np.ndarray]):
             element_mixed_num[2] += 1
     return element_mixed_num, formula, element_frac
 
-
-def mixing_ana(frac_vec_input):
-    frac_mix = np.array(copy.deepcopy(frac_vec_input))
+def mixing_ana(frac_mix):
+    """
+    
+    """
     element_mixed_num, formula, element_frac = element_exist_list(frac_mix)
     # find mixing, only consider pure, amix, bmix and xmix
     # only 1 site is mixed
@@ -64,15 +65,18 @@ def mixing_ana(frac_vec_input):
         mixing = 'Amix'
     elif element_mixed_num[0:2] == [1, 1] and element_mixed_num[2] != 1:
         mixing = 'Xmix'
-    else:
+    elif element_mixed_num[0::2] == [1, 1] and element_mixed_num[1] != 1:
         mixing = 'Bmix'
+    else:
+        raise NotImplementedError("Only Cardinal Mixing Considered")
+        
     return element_mixed_num, mixing, formula, element_frac
 
-
 # decomposed phase extract
-def decomp_phase_ext(element_input, formula_input, mix, element_frac):
-    element_tem = copy.deepcopy(element_input)
-    formula = copy.deepcopy(formula_input)
+def decomp_phase_ext(element_tem, formula, mix, element_frac):
+    """
+    
+    """
     if mix == 'Pure':
         decomp_phase = [formula[0] + formula[2], formula[1] + formula[2] + '2']
         decomp_phase_frac = [1, 1]
@@ -96,7 +100,6 @@ def decomp_phase_ext(element_input, formula_input, mix, element_frac):
         decomp_phase_frac = [x / 3 for x in element_frac[2:]] + [y / 3 for y in element_frac[2:]]
     return decomp_phase, decomp_phase_frac
 
-
 def entropy_calcs(decomp_frac:np.ndarray):
     """
     compute entropy of mixing from 
@@ -107,7 +110,6 @@ def entropy_calcs(decomp_frac:np.ndarray):
     mixing_entropy = k_B * T_ref * np.dot(decomp_frac,
                                           np.log(decomp_frac))
     return mixing_entropy
-
 
 # decomposition calculation function
 def decomp_calc(frac, TOTEN, functional='HSE'):
