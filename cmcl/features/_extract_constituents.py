@@ -1,9 +1,6 @@
-import logging
-logfmt = '[%(levelname)s] %(asctime)s - %(message)s'
-logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
-
 import pandas as pd
 import re
+from .._utils import controlled_flatten, concat_key_values, total_shorten
 import numpy as np
 from unidecode import unidecode
 
@@ -34,17 +31,24 @@ formula_seq = re.compile(f"(({orsyms})({valid_nums}))+")
 
 class FormulaParser():
     """
-    Converts a variety of chemical formula conventions into a useful datastructure
+    Instantiate with an arbitrary chemical formula string
+
+    Convert formula grammar into a useful tree
 
     Accepted Grammar:
-    formula = (formula_element valid_num)+
+    formula = (formula_element[_{]?valid_num[}]?)+
     formula_element = element | lparen formula rparen
-    valid_num = REAL | symbolic
+    element = ptable symbol str | molecules symbol str
+    valid_num = REAL | symbolic str
 
-    each method is applied in sequence, progressively mutating the index
+    return tree by calling parse_new_formula
+
+    parse_new_formula calls the preceding methods, iterating the index
+    progressively according to the matching grammar component
     """
-    def __init__(self, alloy):
-        self.alloy = alloy
+    def __init__(self, alloy:str):
+        alloy = "".join(list(map(unidecode, alloy)))
+        self.alloy = re.sub(r"[\_\{\}]", "", alloy)
         self.index = 0
         self.lparen = re.compile(r"\(")
         self.rparen = re.compile(r"\)")
@@ -66,15 +70,6 @@ class FormulaParser():
             self.index = match.end()
             number = self.alloy[match.span()[0]:match.span()[1]]
             return pd.to_numeric(number or 1, errors="ignore")
-
-    def parse_new_formula(self):
-        result = []
-        e = self.parse_formula_element()
-        while e:
-            num = self.parse_num()
-            result.append((e, num))
-            e = self.parse_formula_element()
-        return result
 
     def parse_formula_element(self):
         e = self.parse_element()
@@ -99,63 +94,29 @@ class FormulaParser():
         else:
             return None
 
-def total_shorten(composition_tree):
-    """calls helper to dynamically adapt mapping function"""
-    top_func = lambda ftuple: total_shorten_helper(ftuple, 1)
-    return list(map(top_func, composition_tree))
+    def parse_new_formula(self):
+        result = []
+        e = self.parse_formula_element()
+        while e:
+            num = self.parse_num()
+            result.append((e, num))
+            e = self.parse_formula_element()
+        return result
 
-
-def total_shorten_helper(ftuple, multiplier):
-    """Takes a tuple and a multipler. Returns the subformula of the tuple multipled"""
-    subformula = ftuple[0]
-    if isinstance(ftuple[1], (float, int, np.float64, np.int64)) and isinstance(multiplier, (float, int, np.float64, np.int64)):
-        num = ftuple[1] * multiplier
-    else:
-        num = "(" + str(multiplier) + ")" + "(" + str(ftuple[1]) + ")"
-
-    if isinstance(subformula, list):
-        current_func = lambda ftuple: total_shorten_helper(ftuple, num)
-
-        new_subformula = list(map(current_func, subformula))
-        return new_subformula
-    else:
-        return (subformula, num)
-
-def flatten_list(list_of_lists, flat_list=None):
-    """generally flatten lists recursively"""
-    if not type(flat_list) == list:
-        flat_list = []
-    for item in list_of_lists:
-        if type(item) == list:
-            flatten_list(item, flat_list)
-        else:
-            flat_list.append(item)
-    return flat_list
-
-def compile_nums(flatlist):
-    """
-    create dictionary by combining key values for repeated keys.
-    provides symbolic concatenation for unlike dtypes
-    """
-    collect_dict = {}
-    for eltuple in flatlist:
-        if eltuple[0] not in collect_dict.keys():
-            collect_dict[eltuple[0]] = eltuple[1]
-        else:
-            if type(collect_dict[eltuple[0]]) != type(eltuple[1]):
-                collect_dict[eltuple[0]] = str(collect_dict[eltuple[0]]) + "+" + str(eltuple[1])
-            elif isinstance(collect_dict[eltuple[0]], str):
-                collect_dict[eltuple[0]] = collect_dict[eltuple[0]] + "+" + str(eltuple[1])
-            else:
-                collect_dict[eltuple[0]] += eltuple[1]
-    return collect_dict
+#TODO: Molecule Translator and Molecule De-convolution
 
 def process_formula(entry):
-    """apply to formula series to obtain series of dicts for construction"""
+    """
+    args:
+    arbitrary formula string
+
+    returns:
+    dict of element:portions
+    """
     composition_tree = FormulaParser(entry).parse_new_formula()
     shorter_tree = total_shorten(composition_tree)
-    formula_zip = flatten_list(shorter_tree)
-    formula_dict = compile_nums(formula_zip)
+    formula_zip = controlled_flatten(shorter_tree, list)
+    formula_dict = concat_key_values(formula_zip)
     return formula_dict
 
 class CompositionTable():
@@ -189,8 +150,6 @@ class CompositionTable():
 
     def make(self):
         # normalize string encoding!
-        self.Formula = self.Formula.str.replace("[\_\{\}]", "", regex=True)
-        self.Formula = self.Formula.apply(lambda entry: "".join(list(map(unidecode, entry))))
         compdict_s = self.Formula.apply(process_formula)
         compdf = pd.DataFrame(compdict_s.to_list())
         comp_s_dict = compdf.to_dict()
