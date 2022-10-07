@@ -168,26 +168,25 @@ if __name__ == '__main__':
     d = {'Formula':['KSnI3',
                     'K0.125Rb0.125MA0.75Pb1I3',
                     'K1Ca0.125Ge0.875I3',
-                    'RbGeBr2.625Cl0.375',
-                    ],
-         'TOTEN':[-133.780, -333.01, -135.745, -135.745],
+                    'RbGeBr2.625Cl0.375'],
+         'TOTEN':[-133.780, -333.01, -135.745, -138.217],
          'Expected_DecoE_eV':[None, None, None, None]}
     calcdf = pd.DataFrame(d)
 
-    # supposed to test against the main table, but I don't have TOTEN:
+    # supposed to test against a main table, but I don't have TOTEN:
 
     # get main table
     # mannodi_pbe_q = """SELECT *
     #                    FROM mannodi_pbe"""
     # with sqlite3.connect(os.path.expanduser("~/src/cmcl/cmcl/db/perovskites.db")) as conn:
-    #     mannodi_pbe = pd.read_sql(mannodi_pbe_q, conn, index_col="index").head(2)
+    #     mannodi_pbe = pd.read_sql(mannodi_pbe_q, conn, index_col="index").head(5)
 
     # calcdf = pd.concat([mannodi_pbe.Formula, mannodi_pbe.DecoE_eV], axis=1)
 
-    calcdf['DecoE_eV_comp'] = calcdf.head(2).apply(
+    calcdf['Computed_DecoE_eV'] = calcdf.head(2).apply(
         lambda x: compute_decomposition_energy(x.Formula,
                                                x.TOTEN,
-                                               functional='PBE'),
+                                               functional='HSE'),
         axis=1
     )
 

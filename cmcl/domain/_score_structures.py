@@ -6,6 +6,11 @@ from mendeleev import element
 #Jiaqi's Cubicity Calculator works directly with CONTCARS
 from ase.io import read
 
+# TODO: make this a home for pymatgen structure subclasses
+# intended to automate analysis of ml subjects
+# Perovskite(Structure):
+# etc...
+
 class Calculator():
     @staticmethod
     def cubicity():
