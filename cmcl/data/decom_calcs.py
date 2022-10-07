@@ -2,38 +2,36 @@ import numpy as np
 import pandas as pd
 import copy
 import os
+from cmcl import process_formula
 
 from typing import Union, Any, Literal
 
-# reference energies of constituent phases
-AX_ref_HSE = pd.read_excel(os.path.expanduser('~/src/cmcl/cmcl/db/ref_data.xlsx'),
-                           sheet_name='AX_HSE', engine='openpyxl')
-AX_ref_PBE = pd.read_excel(os.path.expanduser('~/src/cmcl/cmcl/db/ref_data.xlsx'),
-                           sheet_name='AX_PBE', engine='openpyxl')
-BX2_ref_HSE = pd.read_excel(os.path.expanduser('~/src/cmcl/cmcl/db/ref_data.xlsx'),
-                            sheet_name='BX2_HSE', engine='openpyxl')
-BX2_ref_PBE = pd.read_excel(os.path.expanduser('~/src/cmcl/cmcl/db/ref_data.xlsx'),
-                            sheet_name='BX2_PBE', engine='openpyxl')
-AX_ref_HSE_dict = AX_ref_HSE.set_index('sys')['HSE_ref'].to_dict()
-AX_ref_PBE_dict = AX_ref_PBE.set_index('sys')['PBE_ref'].to_dict()
-BX2_ref_HSE_dict = BX2_ref_HSE.set_index('sys')['HSE_ref'].to_dict()
-BX2_ref_PBE_dict = BX2_ref_PBE.set_index('sys')['PBE_ref'].to_dict()
-ref_HSE_dict = AX_ref_HSE_dict
-ref_HSE_dict.update(BX2_ref_HSE_dict)
-ref_PBE_dict = AX_ref_PBE_dict
-ref_PBE_dict.update(BX2_ref_PBE_dict)
+# when adding reference pages, just put the functionals next to each other
+# the rest should be automatic
+sheets = ['AX_HSE', 'BX2_HSE', 'AX_PBE', 'BX2_PBE']
+# reference energies of decomposition phases currently supplied as
+# pairs of worksheets. Need a DB-focused solution.
+# idea: secret methods generate reference info as needed with atomate+update mrg db
+# secret methods update cmcl db from mrg db
+# cmcl db is distributed with cmcl pkg
+loaded_refs = pd.read_excel(os.path.expanduser('~/src/cmcl/cmcl/db/ref_data.xlsx'),
+                            sheet_name=sheets,
+                            engine='openpyxl',
+                            usecols="A,C", index_col='sys')
 
-print(AX_ref_PBE)
-print(BX2_ref_PBE)
-print(AX_ref_HSE)
-print(BX2_ref_HSE)
+# stick sheet dfs together
+lktpl, _ = zip(*loaded_refs.items())
+refdf_dict = {}
+for ktpl in zip(*[iter(lktpl)] * 2):
+    functional = ktpl[-1].split('_')[-1] # PBE, HSE, etc
+    rfsgrp = [loaded_refs[k] for k in ktpl]
+    refdf_dict[functional] = pd.concat(rfsgrp, axis=0)
 
 # define list for element space
 A_element = ['K', 'Rb', 'Cs', 'MA', 'FA']
 B_element = ['Ca', 'Sr', 'Ba', 'Ge', 'Sn', 'Pb']
 X_element = ['Cl', 'Br', 'I']
 
-# analyze mixing 
 def element_exist_list(frac_mix:Union[list,np.ndarray]):
     """
     args:
@@ -131,35 +129,13 @@ def entropy_calcs(decomp_frac:np.ndarray):
                                           np.log(decomp_frac))
     return mixing_entropy
 
-def _decomp_calc(frac:Union[list,np.ndarray],
-                 TOTEN:float,
-                 ref_dict:dict):
+def compute_decomposition_energy(frac:Union[list,np.ndarray],
+                                 TOTEN:float,
+                                 functional:Literal['HSE','PBE']='HSE'):
     """
-    computes weighted average of possible decomposition pathway
-    energies
-
-    accounts for decomposition target energies varying according to
-    functional used in parent calculation
-    """
-    element, mix, fomula, element_frac = mixing_ana(frac)
-    decomp_phase, decomp_phase_frac = decomp_phase_ext(element,
-                                                       fomula,
-                                                       mix,
-                                                       element_frac)
-    phase_ref_energy = []
-    for i in decomp_phase: #key reference
-        phase_ref_energy.append(ref_dict[i])
-        mixing_entropy = entropy_calcs(decomp_phase_frac)
-        decomp_energy = TOTEN - np.dot(np.array(decomp_phase_frac),
-                                       np.array(phase_ref_energy)) + mixing_entropy
-    return decomp_energy
-
-# decomposition calculation function
-def decomp_calc(frac:Union[list,np.ndarray],
-                TOTEN:float,
-                functional:Literal['HSE','PBE']='HSE'):
-    """
-    Decomposition Energy Calculator
+    For a given chemical structure's formula and a DFT relaxed
+    reference energy obtained at a specified level of theory, compute
+    weighted average of possible decomposition pathway energies
 
     equipped to handle decompositions in Perovskite element space
     - A: K, Rb, Cs, MA, FA
@@ -173,11 +149,16 @@ def decomp_calc(frac:Union[list,np.ndarray],
     returns
     decomposition energy value with included mixing entropy
     """
-    if functional == 'HSE':
-        decomp_energy = _decomp_calc(frac, TOTEN, ref_HSE_dict)
-    elif functional == 'PBE':
-        decomp_energy = _decomp_calc(frac, TOTEN, ref_PBE_dict)
-    return decomp_energy
+    refdf = refdf_dict[functional]
+    element, mix, fomula, element_frac = mixing_ana(frac)
+    decomp_phase, decomp_phase_frac = decomp_phase_ext(element,
+                                                       fomula,
+                                                       mix,
+                                                       element_frac)
+    mixing_entropy = entropy_calcs(decomp_phase_frac)
+    phase_ref_energy = refdf[decomp_phase].values
+    return TOTEN - np.dot(np.array(decomp_phase_frac),
+                          phase_ref_energy) + mixing_entropy
 
 if __name__ == '__main__':
     # test sample K|Sn|I
