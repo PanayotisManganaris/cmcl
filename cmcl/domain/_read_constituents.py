@@ -105,10 +105,11 @@ class FormulaParser():
 
 #TODO: Molecule Translator and Molecule De-convolution
 
-def process_formula(entry):
+def formula2dict(entry):
     """
     args:
     arbitrary formula string
+    supports symbolic portions in terms of x,y,z
 
     returns:
     dict of element:portions
@@ -121,7 +122,7 @@ def process_formula(entry):
 
 class CompositionTable():
     """
-    starting with only series of Formula strings, obtain dataframe
+    starting with only series of Formula strings, obtain DataFrame
     of formulas' constituent quantities
 
     Create Dataframe of Compositions and pass to FeatureAccessor for future reference.
@@ -150,7 +151,7 @@ class CompositionTable():
 
     def make(self):
         # normalize string encoding!
-        compdict_s = self.Formula.apply(process_formula)
+        compdict_s = self.Formula.apply(formula2dict)
         compdf = pd.DataFrame(compdict_s.to_list())
         comp_s_dict = compdf.to_dict()
         comp_dict = {}
@@ -163,3 +164,16 @@ class CompositionTable():
         self.compdf = self.compdf.assign(**comp_dict)
         #comp_cols = self.get()
         return self.compdf
+
+if __name__ == "__main__":
+    # convert convenient formula strings to dictionaries
+    print(formula2dict("(H1-xC_{x}N_1)_{2}Pb_3Br_3"))
+    print(formula2dict("(H6C6N)2Pb3Br3"))
+    print(formula2dict("((H6C6N)2Pb)3Br3"))
+    print(formula2dict("((H6C6N)2Pb)yBr3"))
+    # these dicts be turned into pmg Composition objects directly or
+    # turned into composition tables for simple ml, see below
+    
+    # TODO: refactor this tool
+    df = pd.DataFrame(["(H1-xC_{x}N_1)_{2}Pb_3Br_3"], columns=["Formula"])
+    print(CompositionTable(df).get())
