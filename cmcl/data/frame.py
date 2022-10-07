@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 
-#feature computers
-from cmcl.features._extract_constituents import CompositionTable
+#domain computers
+from cmcl.domain._read_constituents import CompositionTable
 
 #metadata handling
 from cmcl.data.index import ColumnGrouper

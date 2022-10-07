@@ -1,7 +1,3 @@
-import logging
-logfmt = '[%(levelname)s] %(asctime)s - %(message)s'
-logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format=logfmt)
-
 from functools import partial
 import pandas as pd
 

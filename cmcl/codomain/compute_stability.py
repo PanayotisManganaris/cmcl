@@ -32,6 +32,8 @@ A_element = ['K', 'Rb', 'Cs', 'MA', 'FA']
 B_element = ['Ca', 'Sr', 'Ba', 'Ge', 'Sn', 'Pb']
 X_element = ['Cl', 'Br', 'I']
 
+# use formula parser
+
 def element_exist_list(frac_mix:Union[list,np.ndarray]):
     """
     args:
