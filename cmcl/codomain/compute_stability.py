@@ -94,7 +94,6 @@ def decomp_phase_ext(element_tem, constituents, constituent_frac, mix):
     0. decomposition phases list
     1. decomposition phases fraction
     """
-    # I don't understand any of this -- Panos
     if mix == 'Pure':
         decomp_phase = [constituents[0] + constituents[2], constituents[1] + constituents[2] + '2']
         decomp_phase_frac = [1, 1]
@@ -168,9 +167,11 @@ if __name__ == '__main__':
     d = {'Formula':['KSnI3',
                     'K0.125Rb0.125MA0.75Pb1I3',
                     'K1Ca0.125Ge0.875I3',
-                    'RbGeBr2.625Cl0.375'],
-         'TOTEN':[-133.780, -333.01, -135.745, -138.217],
-         'Expected_DecoE_eV':[None, None, None, None]}
+                    'RbGeBr2.625Cl0.375',
+                    'CsCa_0.125Ba_0.75Sn_0.125I_3'],
+         'TOTEN':np.array([-133.780, -333.01,
+                           -135.745, -138.217, -122.36959232])/8,
+         'Expected_DecoE_eV':[None, None, None, None, None]}
     calcdf = pd.DataFrame(d)
 
     # supposed to test against a main table, but I don't have TOTEN:
@@ -183,10 +184,10 @@ if __name__ == '__main__':
 
     # calcdf = pd.concat([mannodi_pbe.Formula, mannodi_pbe.DecoE_eV], axis=1)
 
-    calcdf['Computed_DecoE_eV'] = calcdf.head(2).apply(
+    calcdf['Computed_DecoE_eV'] = calcdf.apply(
         lambda x: compute_decomposition_energy(x.Formula,
                                                x.TOTEN,
-                                               functional='HSE'),
+                                               functional='PBE'),
         axis=1
     )
 
