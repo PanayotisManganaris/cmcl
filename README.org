@@ -12,6 +12,12 @@
 #+exclude_tags: noexport
 #+creator: Emacs 29.0.50 (Org mode 9.5.2)
 #+cite_export:
+* planning new functions
+- [ ] perovskites decomposition calculator
+  - design for extensibility
+- [ ] per-atom calculators
+  - using pymatgen structure reducer
+- [ ] find CHAP calculator (impact on model output)
 * Overview
 This README also serves as a design document. Any heading marked TODO
 may as well be wishful thinking.
